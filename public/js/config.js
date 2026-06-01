@@ -34,6 +34,11 @@ class Config{
     autoSave = true;
 
     autoUpdateInterpolatedBoxes = true;
+    minPointsForStaticPropagation = 5;
+    maxStaticPropagationRefineShift = 1.0;
+    maxStaticWorldPositionDrift = 1.5;
+    maxStaticWorldYawDrift = Math.PI/12;
+    maxEgoYawDeltaForStaticHeadingCheck = Math.PI/18;
 
     hideId = false;
     hideCategory = false;

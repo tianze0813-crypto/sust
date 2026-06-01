@@ -1,6 +1,7 @@
-import{Config} from "./config.js"
-import{Editor} from "./editor.js"
-import {Data} from './data.js'
+import{Config} from "./config.js?v=17"
+import{Editor} from "./editor.js?v=22"
+import {Data} from './data.js?v=17'
+import {SpatialPropagation} from './spatial_propagate.js'
 
 
 let pointsGlobalConfig = new Config();
@@ -35,6 +36,7 @@ async function createMainEditor(){
 
   let editor = new Editor(maindiv.lastElementChild, maindiv, editorCfg, data, "main-editor")
   window.editor = editor;
+  editor.spatialPropagation = new SpatialPropagation(editor);
   editor.run();
   return editor;
 } 
@@ -61,4 +63,3 @@ async function start(){
 
 
 start();
-

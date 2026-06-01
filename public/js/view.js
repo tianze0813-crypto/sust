@@ -5,7 +5,7 @@ import { TransformControls } from './lib/TransformControls.js';
 import {matmul2, euler_angle_to_rotate_matrix} from "./util.js"
 
 
-function ViewManager(mainViewContainer, webglScene, webglMainScene, renderer, globalRenderFunc, on_box_changed, cfg){
+function ViewManager(mainViewContainer, webglScene, webglMainScene, renderer, globalRenderFunc, on_box_changed, cfg, before_box_change){
 
     this.mainViewContainer = mainViewContainer;
     this.globalRenderFunc  = globalRenderFunc;
@@ -14,7 +14,7 @@ function ViewManager(mainViewContainer, webglScene, webglMainScene, renderer, gl
     this.renderer = renderer;
 
     
-    this.mainView = cfg.disableMainView?null:create_main_view(webglMainScene,  renderer, this.globalRenderFunc, this.mainViewContainer, on_box_changed);
+    this.mainView = cfg.disableMainView?null:create_main_view(webglMainScene,  renderer, this.globalRenderFunc, this.mainViewContainer, on_box_changed, before_box_change);
     
     this.boxViewList = [];
     
@@ -66,7 +66,7 @@ function ViewManager(mainViewContainer, webglScene, webglMainScene, renderer, gl
     //this.setColorScheme();
 
     // no public funcs below
-    function create_main_view(scene, renderer, globalRenderFunc, container, on_box_changed){
+    function create_main_view(scene, renderer, globalRenderFunc, container, on_box_changed, before_box_change){
         var view ={};
         
         view.backgroundColor=　(document.documentElement.className == "theme-dark") ? new THREE.Color( 0.0, 0.0, 0.0 ) : new THREE.Color( 1.0, 1.0, 1.0 );
@@ -180,6 +180,9 @@ function ViewManager(mainViewContainer, webglScene, webglMainScene, renderer, gl
         
         transform_control.addEventListener( 'dragging-changed', function ( event ) {
             view.orbit_perspective.enabled = ! event.value;
+            if (event.value && before_box_change) {
+                before_box_change();
+            }
         } );
         transform_control.visible = false;
         //transform_control.enabled = false;

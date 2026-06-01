@@ -149,6 +149,16 @@
 									</g></svg>
 								</div>
 
+								<div id="label-propagate" class="ui-button"  title="stack annotation">
+									<svg viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" focusable="false" class="svg-button"><g>
+										<polyline points="4 12 8 8" />
+										<polyline points="4 12 8 16" />
+										<polyline points="4 12 20 12" />
+										<polyline points="20 12 16 8" />
+										<polyline points="20 12 16 16" />
+									</g></svg>
+								</div>
+
 								<div id="label-highlight" class="ui-button"  title="focus">
 									<!-- <span class="ui-icon ui-icon-zoomin"></span> -->
 									<svg viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" focusable="false" class="svg-button"><g>
@@ -183,6 +193,13 @@
 										<polyline points="10 5 12 3 14 5" stroke-dasharray="1" />
 									</g></svg>
 								</div>
+								<div id="label-rotate-90" class="ui-button"  title="rotate right 90deg">
+									<svg viewBox="0 0 24 24" preserveAspectRatio="xMidYMid meet" focusable="false" class="svg-button"><g>
+										<rect x=8 y=8 width=8 height=8 />
+										<path d="M12 4 A8 8 0 0 1 20 12" />
+										<polyline points="17 10 20 12 18 15" />
+									</g></svg>
+								</div>
 								
 								<div id="label-del" class="ui-button"  title="delete (Del)">
 									<!-- <span class="ui-icon ui-icon-trash"></span> -->
@@ -202,9 +219,13 @@
 									</g></svg>
 
 									<div id="object-dropdown-menu" class="non-selectable">
+										<div class="menu-item" id="cm-delete-obj-range">
+											<div class="menu-item-icon"></div>
+											<div class="menu-item-text">Delete this object in next N frames...</div>
+										</div>
 										<div class="menu-item" id="cm-delete-obj">
 											<div class="menu-item-icon"></div>
-											<div class="menu-item-text">Delete this object (in all frames)</div>
+											<div class="menu-item-text">Delete this object from this frame onward</div>
 										</div>
 										<div class="menu-item" id="cm-modify-obj-type">
 											<div class="menu-item-icon"></div>
@@ -255,6 +276,10 @@
 											<div class="menu-item-icon"></div>
 											<div class="menu-item-text">Follow Static Objects</div>
 										</div>
+										<div class="menu-item" id="cm-fit-moving-direction-by-id">
+											<div class="menu-item-icon"></div>
+											<div class="menu-item-text">Fit Moving Direction By ID</div>
+										</div>
 				
 									</div>
 								</div>
@@ -286,8 +311,47 @@
 						</div>
 					</div>
 
-					
-					
+					<div id="propagation-panel" class="non-selectable" style="display:none;">
+						<div id="propagation-panel-header">
+							<span id="propagation-title">Stack Annotation</span>
+							<span id="propagation-close" class="ui-button" title="close">✕</span>
+						</div>
+						<div id="propagation-panel-body">
+							<div class="stack-panel-section">
+								<div class="stack-panel-section-title">1. Build Stacked Reference</div>
+								<div id="propagation-info">
+									<span id="propagation-obj-info"></span>
+								</div>
+								<div id="propagation-reference-status"></div>
+								<div id="propagation-stack-controls">
+									<label for="propagation-stack-radius">Stack Frames</label>
+									<input id="propagation-stack-radius" type="number" min="0" max="20" value="4" />
+									<span id="propagation-stack-radius-desc">each side</span>
+									<button id="propagation-btn-stack-show" title="preview stacked points">Preview Stack</button>
+									<button id="propagation-btn-stack-lock" title="use current box as fixed stacked reference">Lock Reference</button>
+									<button id="propagation-btn-stack-clear" title="clear stacked points">Clear Preview</button>
+								</div>
+								<div id="propagation-stack-status"></div>
+							</div>
+							<div class="stack-panel-section">
+								<div class="stack-panel-section-title">2. Apply To Frames</div>
+								<div id="propagation-progress">
+									<span id="propagation-frame-label"></span>
+									<div id="propagation-progress-bar"><div id="propagation-progress-fill"></div></div>
+								</div>
+								<div id="propagation-status">
+									<span id="propagation-method"></span>
+									<span id="propagation-point-count"></span>
+								</div>
+								<div id="propagation-controls">
+									<button id="propagation-btn-backward" title="apply to previous frames">◀ Apply Backward</button>
+									<button id="propagation-btn-forward" title="apply to next frames">Apply Forward ▶</button>
+									<button id="propagation-btn-stop" title="stop stack annotation">■ Stop</button>
+								</div>
+							</div>
+						</div>
+					</div>
+
 					<div id="main-box-editor-wrapper"></div>
 					<div id="batch-box-editor">
 						<div id="batch-box-editor-header"></div>
@@ -467,9 +531,13 @@
 							<div class="menu-item-text">Delete</div>
 						</div>
 
+						<div class="menu-item" id="cm-delete-obj-range">
+							<div class="menu-item-icon"></div>
+							<div class="menu-item-text">Delete this object in next N frames...</div>
+						</div>
 						<div class="menu-item" id="cm-delete-obj">
 							<div class="menu-item-icon"></div>
-							<div class="menu-item-text">Delete this object (in all frames)</div>
+							<div class="menu-item-text">Delete this object from this frame onward</div>
 						</div>
 						<div class="menu-item" id="cm-modify-obj-type">
 							<div class="menu-item-icon"></div>
@@ -519,6 +587,10 @@
 						<div class="menu-item" id="cm-follow-static-objects">
 							<div class="menu-item-icon"></div>
 							<div class="menu-item-text">Follow Static Objects</div>
+						</div>
+						<div class="menu-item" id="cm-fit-moving-direction-by-id">
+							<div class="menu-item-icon"></div>
+							<div class="menu-item-text">Fit Moving Direction By ID</div>
 						</div>
 
 					</div>
@@ -584,6 +656,11 @@
 							<div class="menu-item-icon">							
 							</div>
 							<div class="menu-item-text">Auto  annotate (no rotation)</div>
+						</div>
+
+						<div class="menu-item" id="cm-finalize-up-to-frame">
+							<div class="menu-item-icon"></div>
+							<div class="menu-item-text">Finalize Up To This Frame</div>
 						</div>
 
 
@@ -1305,6 +1382,6 @@
 		</template>
 
 		<script src="/static/js/lib/ml/tf.min.js"></script>
-		<script type="module"  src="/static/js/main.js"></script>		
+		<script type="module"  src="/static/js/main.js?v=22"></script>
 	</body>
 </html>

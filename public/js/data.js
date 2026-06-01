@@ -51,7 +51,7 @@ class Data
 
     worldGap=1000.0;
     worldList=[];
-    MaxWorldNumber=80;
+    MaxWorldNumber=120;
     createWorldIndex = 0; // this index shall not repeat, so it increases permanently
 
     async getWorld(sceneName, frame, on_preload_finished){
@@ -282,11 +282,14 @@ class Data
     };
 
     onAnnotationUpdatedByOthers(scene, frames){
-        frames.forEach(f=>{
+        let reloads = frames.map(f=>{
             let world = this.worldList.find(w=>(w.frameInfo.scene==scene && w.frameInfo.frame==f));
             if (world)
-                world.annotation.reloadAnnotation();
+                return new Promise(resolve=>world.annotation.reloadAnnotation(resolve));
+            return Promise.resolve();
         })
+
+        return Promise.all(reloads);
     };
 
     webglScene = null;
@@ -465,4 +468,3 @@ class Data
 
 
 export {Data};
-

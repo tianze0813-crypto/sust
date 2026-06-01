@@ -4,10 +4,12 @@ import * as THREE from './lib/three.module.js';
 import {globalObjectCategory} from './obj_cfg.js';
 import {saveWorldList} from "./save.js"
 import { intersect } from './util.js';
+import { UndoManager } from './undo_manager.js';
 
 
 function Annotation(sceneMeta, world, frameInfo){
     this.world = world;
+    this.undoManager = new UndoManager();
     this.data = this.world.data;
     //this.coordinatesOffset = this.world.coordinatesOffset;
     this.boxes_load_time = 0;
@@ -90,6 +92,7 @@ function Annotation(sceneMeta, world, frameInfo){
 
 
     this.unload = function(){
+        this.clearUndoHistory();
         if (this.boxes){
             this.boxes.forEach((b)=>{
                 //this.webglGroup.remove(b);
@@ -208,6 +211,7 @@ function Annotation(sceneMeta, world, frameInfo){
     // };
 
     this.remove_all_boxes = function(){
+        this.undoManager.takeSnapshot(this);
         if (this.boxes){
             this.boxes.forEach((b)=>{
                 this.webglGroup.remove(b);
@@ -321,6 +325,8 @@ function Annotation(sceneMeta, world, frameInfo){
 
     this.add_box=function(pos, scale, rotation, obj_type, track_id, obj_attr){
 
+        this.undoManager.takeSnapshot(this);
+
         let mesh = this.createCuboid(pos, scale, rotation, obj_type, track_id, obj_attr)
 
         this.boxes.push(mesh);
@@ -342,11 +348,24 @@ function Annotation(sceneMeta, world, frameInfo){
     };
 
     this.remove_box=function(box){
+        this.undoManager.takeSnapshot(this);
         this.world.data.dbg.free();
         box.geometry.dispose();
         box.material.dispose();
         //selected_box.dispose();
         this.boxes = this.boxes.filter(function(x){return x !=box;});
+    };
+
+    this.undo = function() {
+        return this.undoManager.undo(this);
+    };
+
+    this.redo = function() {
+        return this.undoManager.redo(this);
+    };
+
+    this.clearUndoHistory = function() {
+        this.undoManager.clear();
     };
 
     this.set_box_opacity=function(box_opacity){
@@ -455,6 +474,8 @@ function Annotation(sceneMeta, world, frameInfo){
 
     
     this.reapplyAnnotation = function(boxes, done){
+            this.undoManager.takeSnapshot(this);
+
             // these boxes haven't attached a world
             //boxes = this.transformBoxesByOffset(boxes);
 

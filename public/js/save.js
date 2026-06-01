@@ -1,7 +1,7 @@
 
 
 
-import { Editor } from "./editor.js";
+import { Editor } from "./editor.js?v=22";
 import { checkScene } from "./error_check.js";
 import {logger} from "./log.js"
 
@@ -94,11 +94,38 @@ function saveWorldList(worldList){
 }
 
 
-function doSaveWorldList(worldList, done)
+function saveWorldListImmediate(worldList){
+    return new Promise((resolve, reject)=>{
+        if (!worldList || worldList.length === 0){
+            resolve();
+            return;
+        }
+
+        if (saveDelayTimer){
+            clearTimeout(saveDelayTimer);
+            saveDelayTimer = null;
+        }
+
+        pendingSaveList = pendingSaveList.filter(w=>!worldList.includes(w));
+
+        let scene = worldList[0].frameInfo.scene;
+        doSaveWorldList(worldList, ()=>{
+            editor.header.updateModifiedStatus();
+            checkScene(scene);
+            resolve();
+        }, reject);
+    });
+}
+
+
+function doSaveWorldList(worldList, done, fail)
 {
     if (worldList.length>0){
         if (worldList[0].data.cfg.disableLabels){
             console.log("labels not loaded, save action is prohibitted.")
+            if (fail){
+                fail(new Error("labels not loaded, save action is prohibitted."));
+            }
             return;
         }
     }
@@ -134,6 +161,9 @@ function doSaveWorldList(worldList, done)
         }
         else{
             window.editor.infoBox.show("Error", `save failed, status : ${this.status}`);
+            if (fail){
+                fail(new Error(`save failed, status : ${this.status}`));
+            }
         }
         
     
@@ -186,4 +216,4 @@ function doSaveWorldList(worldList, done)
 // }
 
 
-export {saveWorldList, reloadWorldList}
+export {saveWorldList, saveWorldListImmediate, reloadWorldList}

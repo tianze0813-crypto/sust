@@ -300,7 +300,7 @@ function Lidar(sceneMeta, world, frameInfo){
 
     // color points according to object category
     this.color_points=function(){
-        // color all points inside these boxes
+        if (!this.points || !this.points.geometry) return;
         let color = this.points.geometry.getAttribute("color").array;
 
         // step 1, color all points.
@@ -354,11 +354,12 @@ function Lidar(sceneMeta, world, frameInfo){
 
    
     this.get_all_pionts=function(){
+        if (!this.points || !this.points.geometry) return null;
         return this.points.geometry.getAttribute("position");
     };
     
     this.computeCenter = function(){
-
+        if (!this.points || !this.points.geometry) return;
         if (! this.center)
         {
             let position = this.points.geometry.getAttribute("position");
@@ -469,6 +470,7 @@ function Lidar(sceneMeta, world, frameInfo){
     };
 
     this.toggle_background=function(){
+        if (!this.points) return;
         if (this.points.points_backup){ // cannot differentiate highlighted-scene and no-background-whole-scene
             this.cancel_highlight();
             return;
@@ -480,6 +482,7 @@ function Lidar(sceneMeta, world, frameInfo){
 
     // hide all points not inside any box
     this.hide_background=function(){
+        if (!this.points) return;
         if (this.points.points_backup){
             //already hidden, or in highlight mode
             return;
@@ -604,6 +607,7 @@ function Lidar(sceneMeta, world, frameInfo){
     };
 
     this.highlight_box_points=function(box){
+        if (!this.points) return;
         if (this.points.highlighted_box){
             //already highlighted.
             return;
@@ -687,10 +691,17 @@ function Lidar(sceneMeta, world, frameInfo){
     this.get_points_dimmension_of_box=function(box, use_box_bottom_as_limit){
         var p = this._get_points_of_box(this.points, box, 1).position;  //position is relative to box coordinates
 
+        if (!p || p.length === 0){
+            return null;
+        }
+
         var lowest_limit = - box.scale.z/2;
 
         if (!use_box_bottom_as_limit){
             var extreme1 = vector_range(p, 3);
+            if (!extreme1){
+                return null;
+            }
             lowest_limit = extreme1.min[2];
         }
         
@@ -702,6 +713,9 @@ function Lidar(sceneMeta, world, frameInfo){
 
         //compute range again.
         var extreme2 = vector_range(p, 3);
+        if (!extreme2){
+            return null;
+        }
 
         return {
             max:{
@@ -719,8 +733,14 @@ function Lidar(sceneMeta, world, frameInfo){
 
     // given points and box, calculate new box scale
     this.get_dimension_of_points=function(indices, box){
-        var p = this._get_points_of_box(this.points, box, 1, indices).position;                
+        var p = this._get_points_of_box(this.points, box, 1, indices).position;
+        if (!p || p.length === 0){
+            return null;
+        }
         var extreme1 = vector_range(p, 3);
+        if (!extreme1){
+            return null;
+        }
 
         //filter out lowest part, to calculate x-y size.
         var p = p.filter(function(x){
@@ -729,6 +749,9 @@ function Lidar(sceneMeta, world, frameInfo){
 
         //compute range again.
         var extreme2 = vector_range(p, 3);
+        if (!extreme2){
+            return null;
+        }
 
         return {
             max:{
@@ -756,6 +779,7 @@ function Lidar(sceneMeta, world, frameInfo){
 
 
     this.get_points_relative_coordinates_of_box=function(box, scale_ratio){
+        if (!this.points) return [];
         var ret = this._get_points_of_box(this.points, box, scale_ratio);
         return ret.position;
     };
@@ -767,6 +791,7 @@ function Lidar(sceneMeta, world, frameInfo){
 
     // this 
     this._get_points_of_box=function(points, box, scale_ratio, point_indices){
+        if (!points || !points.geometry) return {index: [], position: [], position_wo_rotation: []};
 
         if (!scale_ratio){
             scale_ratio = 1;
@@ -1162,11 +1187,13 @@ function Lidar(sceneMeta, world, frameInfo){
 
     
     this.get_box_points_number=function(box){
+        if (!this.points) return 0;
         var indices = this._get_points_index_of_box(this.points, box, 1.0);
         return indices.length;
     };
 
     this.reset_box_points_color = function(box){
+        if (!this.points || !this.points.geometry) return;
         let color = this.points.geometry.getAttribute("color").array;
         let indices = this._get_points_index_of_box(this.points, box, 1.0);
         if (this.data.cfg.color_points=="intensity")
@@ -1197,7 +1224,7 @@ function Lidar(sceneMeta, world, frameInfo){
 
 
     this.set_box_points_color=function(box, target_color){
-        //var pos = this.points.geometry.getAttribute("position");
+        if (!this.points || !this.points.geometry) return;
         var color = this.points.geometry.getAttribute("color");
 
         if (!target_color){
@@ -1230,7 +1257,7 @@ function Lidar(sceneMeta, world, frameInfo){
     };
 
     this.set_spec_points_color=function(point_indices, target_color){
-        //var pos = this.points.geometry.getAttribute("position");
+        if (!this.points || !this.points.geometry) return;
         var color = this.points.geometry.getAttribute("color");
         
         point_indices.forEach(function(i){
@@ -1253,6 +1280,7 @@ function Lidar(sceneMeta, world, frameInfo){
 
     // set all points to specified color
     this.set_points_color=function(target_color){
+        if (!this.points || !this.points.geometry) return;
         var color = this.points.geometry.getAttribute("color");
         for (var i = 0; i<color.count; i++){
             color.array[i*3] = target_color.x;

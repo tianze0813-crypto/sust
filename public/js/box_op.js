@@ -119,11 +119,23 @@ function BoxOp(){
                 z: box.scale.z,
             };
             this.grow_box(box, this.grow_box_distance_threshold, {x:2, y:2, z:3});
-            this.auto_shrink_box(box);
+            let shrink_ok = this.auto_shrink_box(box);
+            if (!shrink_ok){
+                box.scale.x = org_scale.x;
+                box.scale.y = org_scale.y;
+                box.scale.z = org_scale.z;
+                return null;
+            }
             // now box has been centered.
 
             let points_indices = box.world.lidar.get_points_of_box(box,1.0).index;
             let extreme = box.world.lidar.get_dimension_of_points(points_indices, box);
+            if (!extreme){
+                box.scale.x = org_scale.x;
+                box.scale.y = org_scale.y;
+                box.scale.z = org_scale.z;
+                return null;
+            }
             // restore scale
             if (noscaling){
                 box.scale.x = org_scale.x;
@@ -188,6 +200,10 @@ function BoxOp(){
                 // rotation set, now rescaling the box
                 // important: should use original points before rotation set
                 var extreme = box.world.lidar.get_dimension_of_points(points_indices, box);
+                if (!extreme){
+                    console.log("skip auto rotate rescale: no valid lidar points in box");
+                    return box;
+                }
     
                 let auto_adj_dimension = [];
     
@@ -331,12 +347,18 @@ function BoxOp(){
 
     this.auto_shrink_box= function(box){
         var  extreme = box.world.lidar.get_points_dimmension_of_box(box);
+        if (!extreme){
+            console.log("skip auto shrink: no valid lidar points in box");
+            return false;
+        }
         
         ['x', 'y','z'].forEach((axis)=>{
 
             this.translate_box(box, axis, (extreme.max[axis] + extreme.min[axis])/2);
             box.scale[axis] = extreme.max[axis]-extreme.min[axis];        
         }) 
+
+        return true;
 
     };
 
@@ -429,13 +451,17 @@ function BoxOp(){
 
         if (sticky){
             var extreme = box.world.lidar.get_dimension_of_points(points_indices, box);
+            if (!extreme){
+                console.log("skip sticky rotate-y rescale: no valid lidar points in box");
+            } else {
 
-            ['x','z'].forEach((axis)=>{
+                ['x','z'].forEach((axis)=>{
 
-                this.translate_box(box, axis, (extreme.max[axis] + extreme.min[axis])/2);
-                box.scale[axis] = extreme.max[axis] - extreme.min[axis];        
+                    this.translate_box(box, axis, (extreme.max[axis] + extreme.min[axis])/2);
+                    box.scale[axis] = extreme.max[axis] - extreme.min[axis];        
 
-            }) 
+                }) 
+            }
         }
 
         if (on_box_changed)
@@ -503,13 +529,17 @@ function BoxOp(){
 
         if (sticky){
             var extreme = box.world.lidar.get_dimension_of_points(points_indices, box);
+            if (!extreme){
+                console.log("skip sticky rotate-x rescale: no valid lidar points in box");
+            } else {
 
-            ['y','z'].forEach((axis)=>{
+                ['y','z'].forEach((axis)=>{
 
-                this.translate_box(box, axis, (extreme.max[axis] + extreme.min[axis])/2);
-                box.scale[axis] = extreme.max[axis] - extreme.min[axis];        
+                    this.translate_box(box, axis, (extreme.max[axis] + extreme.min[axis])/2);
+                    box.scale[axis] = extreme.max[axis] - extreme.min[axis];        
 
-            }) 
+                }) 
+            }
         }
 
         if (on_box_changed)
@@ -619,13 +649,17 @@ function BoxOp(){
         if (sticky){
         
             var extreme = box.world.lidar.get_dimension_of_points(points_indices, box);
+            if (!extreme){
+                console.log("skip sticky rotate-z rescale: no valid lidar points in box");
+            } else {
 
-            ['x','y'].forEach((axis)=>{
+                ['x','y'].forEach((axis)=>{
 
-                this.translate_box(box, axis, (extreme.max[axis] + extreme.min[axis])/2);
-                box.scale[axis] = extreme.max[axis] - extreme.min[axis];        
+                    this.translate_box(box, axis, (extreme.max[axis] + extreme.min[axis])/2);
+                    box.scale[axis] = extreme.max[axis] - extreme.min[axis];        
 
-            }) 
+                }) 
+            }
         }
     },
 
@@ -745,7 +779,9 @@ function BoxOp(){
         }
     };
 
-    this.interpolateAndAutoAdjustAsync = async function(worldList, boxList, onFinishOneBoxCB, applyIndList, dontRotate){
+    this.interpolateAndAutoAdjustAsync = async function(worldList, boxList, onFinishOneBoxCB, applyIndList, dontRotate, options){
+        options = options || {};
+        let anchorIndList = options.anchorIndList || null;
         
         
         // if annotator is not null, it's annotated by us algorithms
@@ -754,7 +790,7 @@ function BoxOp(){
             if (!b)
                 return null;
 
-            if (b.annotator)
+            if (b.annotator && !(anchorIndList && anchorIndList[i]))
                 return null; 
             
             return b.world.annotation.ann_to_vector_global(b);
@@ -830,8 +866,9 @@ function BoxOp(){
                 onFinishOneBoxCB(i);
         };
 
-        let ret = await ml.interpolate_annotation(anns, autoAdjAsync, onFinishOneBox);
+        let ret = await ml.interpolate_annotation(anns, autoAdjAsync, onFinishOneBox, options.pauseControl);
         console.log(ret);
+        return ret;
 
         // for (let i = 0; i< boxList.length; i++){
         //     onFinishOneBox(i);

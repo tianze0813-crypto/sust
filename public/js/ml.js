@@ -309,8 +309,21 @@ var ml = {
     },
 
     // autoadj is async
-    interpolate_annotation: async function(anns, autoAdj, onFinishOneBox){
-        
+    interpolate_annotation: async function(anns, autoAdj, onFinishOneBox, options){
+        let control = options || {};
+        let paused = false;
+
+        let shouldPause = ()=>{
+            return !!(control && control.shouldPause && control.shouldPause());
+        };
+
+        let markPaused = (index)=>{
+            paused = true;
+            if (control && control.onPaused){
+                control.onPaused(index);
+            }
+        };
+
         let i = 0;
         while(true){
             while (i+1 < anns.length && !(anns[i] && !anns[i+1])){
@@ -330,6 +343,11 @@ var ml = {
                 let interpolate_step = annMath.div(annMath.sub(anns[end], anns[start]), (end-start));
 
                 for (let inserti=start+1; inserti<end; inserti++){
+                    if (shouldPause()){
+                        markPaused(inserti);
+                        break;
+                    }
+
                     let tempAnn = annMath.add(anns[inserti-1], interpolate_step);
 
                     if (autoAdj) 
@@ -337,15 +355,6 @@ var ml = {
                         try
                         {
                             let adjustedAnn = await autoAdj(inserti, tempAnn);
-
-
-                            let adjustedYaw = annMath.normAngle(adjustedAnn[5] - tempAnn[5]);
-
-                            if (Math.abs(adjustedYaw) > Math.PI/2)
-                            {
-                                console.log("adjust angle by Math.PI.");
-                                adjustedAnn[5] = annMath.normAngle(adjustedAnn[5] + Math.PI);
-                            }
                             
                             if (!pointsGlobalConfig.enableAutoRotateXY)
                             {
@@ -373,9 +382,18 @@ var ml = {
                     if (onFinishOneBox)
                         onFinishOneBox(inserti);
                 }
+
+                if (paused){
+                    break;
+                }
             }else{
                 break;
             }
+        }
+
+        if (paused){
+            anns.paused = true;
+            return anns;
         }
 
         // interpolate finished
@@ -396,19 +414,16 @@ var ml = {
             }
 
             while (i < anns.length && !anns[i]){
+                if (shouldPause()){
+                    markPaused(i);
+                    break;
+                }
+
                 let tempAnn = filter.predict();
 
                 if (autoAdj){
                     try {
                         let adjustedAnn = await autoAdj(i, tempAnn);
-
-                        let adjustedYaw = annMath.normAngle(adjustedAnn[5] - tempAnn[5]);
-
-                        if (Math.abs(adjustedYaw) > Math.PI/2)
-                        {
-                            console.log("adjust angle by Math.PI.");
-                            adjustedAnn[5] = annMath.normAngle(adjustedAnn[5] + Math.PI);
-                        }
 
                         tempAnn = adjustedAnn;
 
@@ -431,6 +446,11 @@ var ml = {
                 i++;
             }
         }
+
+        if (paused){
+            anns.paused = true;
+            return anns;
+        }
         // now extrapolate
         
         //backward
@@ -448,20 +468,17 @@ var ml = {
             }
 
             while (i >= 0 && !anns[i]){
+                if (shouldPause()){
+                    markPaused(i);
+                    break;
+                }
+
                 let tempAnn = filter.predict();
                 if (autoAdj){
                     let adjustedAnn = await autoAdj(i, tempAnn).catch(e=>{
                         logger.log(e);
                         return tempAnn;
                     });
-
-                    let adjustedYaw = annMath.normAngle(adjustedAnn[5] - tempAnn[5]);
-
-                    if (Math.abs(adjustedYaw) > Math.PI/2)
-                    {
-                        console.log("adjust angle by Math.PI.");
-                        adjustedAnn[5] = annMath.normAngle(adjustedAnn[5] + Math.PI);
-                    }
 
                     tempAnn = adjustedAnn;
 
@@ -479,6 +496,7 @@ var ml = {
             }
         }
 
+        anns.paused = paused;
         return anns;
     },
 

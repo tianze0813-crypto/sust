@@ -211,13 +211,16 @@ class FastToolBox{
             "#label-paste",
             "#label-batchedit",
             "#label-trajectory",
+            "#label-propagate",
             "#label-edit",
             "#label-highlight",
             "#label-rotate",
+            "#label-rotate-90",
         ];
 
         btns.forEach(btn=>{
-            this.ui.querySelector(btn).onclick = (event)=>{
+            const el = this.ui.querySelector(btn);
+            el.onclick = (event)=>{
                 this.eventHandler(event);
             };
         });  

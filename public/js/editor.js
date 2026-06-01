@@ -1,18 +1,18 @@
 import * as THREE from './lib/three.module.js';
 
 import {ViewManager} from "./view.js";
-import {FastToolBox, FloatLabelManager} from "./floatlabel.js";
+import {FastToolBox, FloatLabelManager} from "./floatlabel.js?v=2";
 import {Mouse} from "./mouse.js";
-import {BoxEditor, BoxEditorManager} from "./box_editor.js";
+import {BoxEditor, BoxEditorManager} from "./box_editor.js?v=15";
 import {ImageContextManager} from "./image.js";
 import {globalObjectCategory} from "./obj_cfg.js";
 
 import {objIdManager} from "./obj_id_list.js";
 import {Header} from "./header.js";
 import {BoxOp} from './box_op.js';
-import {AutoAdjust} from "./auto-adjust.js";
+import {AutoAdjust} from "./auto-adjust.js?v=21";
 import {PlayControl} from "./play.js";
-import {reloadWorldList, saveWorldList} from "./save.js";
+import {reloadWorldList, saveWorldList, saveWorldListImmediate} from "./save.js";
 import {logger, create_logger} from "./log.js";
 import {autoAnnotate} from "./auto_annotate.js";
 import {Calib} from "./calib.js";
@@ -43,6 +43,9 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
     this.scene = null;
     this.renderer = null;
     this.selected_box = null;
+    this.stackPreviewMesh = null;
+    this.stackReference = null;
+    this.batchUndoStack = [];
     this.windowWidth = null;
     this.windowHeight= null;
     this.floatLabelManager = null;
@@ -115,7 +118,12 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
         this.viewManager = new ViewManager(this.container, this.scene, this.mainScene, this.renderer, 
             function(){self.render();}, 
             function(box){self.on_box_changed(box)},
-            this.editorCfg);
+            this.editorCfg,
+            function(){
+                if (self.data.world && self.data.world.annotation) {
+                    self.data.world.annotation.undoManager.takeSnapshot(self.data.world.annotation);
+                }
+            });
         
 
         this.imageContextManager = new ImageContextManager(
@@ -429,6 +437,11 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
             this.showTrajectory();            
             break;
 
+        case "label-propagate":
+            event.currentTarget.blur();
+            this.openStackAnnotationPanel();
+            break;
+
         case "label-edit":
             event.currentTarget.blur();
             self.selectBox(self.selected_box);
@@ -458,6 +471,11 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
             event.currentTarget.blur();
             self.transform_bbox("z_rotate_reverse");
             break;    
+
+        case "label-rotate-90":
+            event.currentTarget.blur();
+            self.transform_bbox("z_rotate_right_angle");
+            break;
         
         case "object-category-selector":
             this.object_category_changed(event);
@@ -743,6 +761,9 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
 
             this.showTrajectory();
             break;
+        case "cm-fit-moving-direction-by-id":
+            this.fitMovingDirectionByTrackId();
+            break;
 
         case "cm-select-as-ref":
             if (!this.selected_box.obj_track_id)
@@ -796,29 +817,35 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
                 break;
             if (!this.ensurePreloaded())
                 break;
-            this.autoAdjust.followsRef(this.selected_box);
-            this.header.updateModifiedStatus();
-            this.editBatch(
-                this.data.world.frameInfo.scene,
-                this.data.world.frameInfo.frame,
-                this.selected_box.obj_track_id,
-                this.selected_box.obj_type
-            );
+            this.autoAdjust.followsRef(this.selected_box).then(()=>{
+                this.header.updateModifiedStatus();
+                this.editBatch(
+                    this.data.world.frameInfo.scene,
+                    this.data.world.frameInfo.frame,
+                    this.selected_box.obj_track_id,
+                    this.selected_box.obj_type
+                );
+            }).catch(error=>{
+                console.error("follow ref failed", error);
+            });
             break;
         case 'cm-follow-static-objects':
             if (!this.ensureBoxTrackIdExist())
                 break;
             if (!this.ensurePreloaded())
                 break;
-            this.autoAdjust.followStaticObjects(this.selected_box);
-            this.header.updateModifiedStatus();
+            this.autoAdjust.followStaticObjects(this.selected_box).then(()=>{
+                this.header.updateModifiedStatus();
 
-            this.editBatch(
-                this.data.world.frameInfo.scene,
-                this.data.world.frameInfo.frame,
-                this.selected_box.obj_track_id,
-                this.selected_box.obj_type
-            );
+                this.editBatch(
+                    this.data.world.frameInfo.scene,
+                    this.data.world.frameInfo.frame,
+                    this.selected_box.obj_track_id,
+                    this.selected_box.obj_type
+                );
+            }).catch(error=>{
+                console.error("follow static objects failed", error);
+            });
 
             break;
         case "cm-sync-followers":
@@ -831,24 +858,13 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
             break;
 
 
-        case "cm-delete-obj":
-            {
-                //let saveList=[];
-                this.data.worldList.forEach(w=>{
-                    let box = w.annotation.boxes.find(b=>b.obj_track_id === this.selected_box.obj_track_id);
-                    if (box && box !== this.selected_box){
-                        w.annotation.unload_box(box);
-                        w.annotation.remove_box(box);
-                        //saveList.push(w);
-                        w.annotation.setModified();
-                    }
-                });
+        case "cm-delete-obj-range":
+            this.deleteSelectedObjectRange();
+            return true;
 
-                //saveWorldList(saveList);
-                this.remove_selected_box();
-                this.header.updateModifiedStatus();
-            }
-            break;
+        case "cm-delete-obj":
+            this.deleteSelectedObjectRange(null);
+            return true;
 
         case "cm-modify-obj-type":
             {
@@ -1099,6 +1115,205 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
     };
 
 
+    this.fitMovingDirectionByTrackId = async function()
+    {
+        if (!this.ensureBoxTrackIdExist())
+            return;
+
+        const scene = this.data.world.frameInfo.scene;
+        const objId = this.selected_box.obj_track_id;
+        const modifiedFrames = this.data.worldList.filter(w=>w.frameInfo.scene === scene && w.annotation.modified);
+
+        try{
+            if (modifiedFrames.length > 0){
+                await saveWorldListImmediate(modifiedFrames);
+            }
+
+            const params = new URLSearchParams({
+                scene: scene,
+                obj_id: objId,
+            });
+            const response = await fetch("/fit_moving_direction_by_id?" + params.toString());
+            const result = await response.json();
+
+            if (!response.ok || result.error){
+                throw new Error(result.error || `HTTP error ${response.status}`);
+            }
+
+            this.onAnnotationUpdatedByOthers(scene, result.updated_frames || []);
+            this.render();
+
+            const updatedCount = result.updated_count ?? ((result.updated_frames || []).length);
+            const fittedCount = result.fitted_count ?? ((result.fitted_frames || []).length);
+            const skippedCount = result.skipped_count ?? ((result.skipped_frames || []).length);
+
+            this.infoBox.show(
+                "Notice",
+                `Moving-direction heading fit finished.<br>` +
+                `Updated: ${updatedCount}<br>` +
+                `Fitted: ${fittedCount}<br>` +
+                `Skipped: ${skippedCount}<br>` +
+                `${result.message || ""}`
+            );
+        }catch(error){
+            console.error("fit moving direction by id failed", error);
+            this.infoBox.show("Error", `Fit moving direction failed: ${error.message}`);
+        }
+    };
+
+    this.deleteSelectedObjectRange = async function(count){
+        if (!this.selected_box){
+            this.infoBox.show("Error", "Please select a box first.");
+            return;
+        }
+
+        if (!this.ensureBoxTrackIdExist())
+            return;
+
+        const scene = this.data.world.frameInfo.scene;
+        const startFrame = this.data.world.frameInfo.frame;
+        const objId = this.selected_box.obj_track_id;
+
+        if (count === undefined){
+            const raw = window.prompt("Delete this object from current frame for how many frames?", "1");
+            if (raw === null)
+                return;
+
+            count = parseInt(raw, 10);
+            if (!Number.isInteger(count) || count <= 0){
+                this.infoBox.show("Error", "Frame count must be a positive integer.");
+                return;
+            }
+        }
+
+        const rangeText = count === null ? "all following frames" : `${count} frame(s)`;
+        const confirmed = window.confirm(
+            `Delete object ${objId} from frame ${startFrame} for ${rangeText}?`
+        );
+        if (!confirmed)
+            return;
+
+        try{
+            const modifiedFrames = this.data.worldList.filter(w=>
+                w.frameInfo.scene === scene && w.annotation.modified
+            );
+            if (modifiedFrames.length > 0){
+                await saveWorldListImmediate(modifiedFrames);
+            }
+
+            const result = await this._postJson("/delete_object_range", {
+                scene: scene,
+                start_frame: startFrame,
+                obj_id: objId,
+                count: count,
+            });
+
+            if (result.error)
+                throw new Error(result.error);
+
+            const updatedFrames = result.updated_frames || [];
+            const backup = result.backup || [];
+
+            if (backup.length > 0){
+                this.batchUndoStack.push({
+                    scene: scene,
+                    frames: updatedFrames,
+                    backup: backup,
+                    objId: objId,
+                });
+            }
+
+            await this.reloadAnnotationsFromDisk(scene, updatedFrames);
+
+            this.infoBox.show(
+                "Notice",
+                `Deleted object ${objId}.<br>` +
+                `Updated frames: ${updatedFrames.length}.`
+            );
+        } catch(error) {
+            console.error("delete object range failed", error);
+            this.infoBox.show("Error", `Delete failed: ${error.message}`);
+        }
+    };
+
+    this._postJson = async function(url, data){
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data),
+        });
+
+        const result = await response.json();
+        if (!response.ok){
+            throw new Error(result.error || `HTTP error ${response.status}`);
+        }
+        return result;
+    };
+
+    this.restoreLastBatchDelete = async function(){
+        if (!this.batchUndoStack || this.batchUndoStack.length === 0)
+            return false;
+
+        const entry = this.batchUndoStack[this.batchUndoStack.length - 1];
+
+        try{
+            const response = await fetch("/saveworldlist", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(entry.backup),
+            });
+
+            if (!response.ok)
+                throw new Error(`HTTP error ${response.status}`);
+
+            this.batchUndoStack.pop();
+            await this.reloadAnnotationsFromDisk(entry.scene, entry.frames);
+
+            this.infoBox.show(
+                "Notice",
+                `Restored object ${entry.objId}.<br>` +
+                `Restored frames: ${entry.frames.length}.`
+            );
+            return true;
+        } catch(error) {
+            console.error("restore batch delete failed", error);
+            this.infoBox.show("Error", `Undo failed: ${error.message}`);
+            return true;
+        }
+    };
+
+    this.reloadAnnotationsFromDisk = async function(scene, frames){
+        if (!frames || frames.length === 0){
+            this.header.updateModifiedStatus();
+            this.render();
+            return;
+        }
+
+        const currentWorld = this.data.world;
+        const currentFrameAffected = currentWorld &&
+            currentWorld.frameInfo.scene === scene &&
+            frames.includes(currentWorld.frameInfo.frame);
+
+        if (currentFrameAffected && this.selected_box){
+            this.unselectBox(null, true);
+            this.unselectBox(null, true);
+            this.selected_box = null;
+        }
+
+        await this.onAnnotationUpdatedByOthers(scene, frames);
+
+        if (currentFrameAffected){
+            this.imageContextManager.attachWorld(currentWorld);
+            this.imageContextManager.render_2d_image();
+            this.render2dLabels(currentWorld);
+            this.update_frame_info(currentWorld.frameInfo.scene, currentWorld.frameInfo.frame);
+        }
+
+        this.header.updateModifiedStatus();
+        this.render();
+    };
+
+
     this.editBatch = function(sceneName, frame, objectTrackId, objectType){
 
         
@@ -1244,6 +1459,9 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
 
     this.setObjectId = function(id)
     {
+        if (this.data.world && this.data.world.annotation) {
+            this.data.world.annotation.undoManager.takeSnapshot(this.data.world.annotation);
+        }
         this.selected_box.obj_track_id = id;
         this.floatLabelManager.set_object_track_id(this.selected_box.obj_local_id, this.selected_box.obj_track_id);
 
@@ -1268,6 +1486,9 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
 
     this.object_attribute_changed = function(value){
         if (this.selected_box){
+            if (this.data.world && this.data.world.annotation) {
+                this.data.world.annotation.undoManager.takeSnapshot(this.data.world.annotation);
+            }
             this.selected_box.obj_attr = value;
             this.floatLabelManager.set_object_attr(this.selected_box.obj_local_id, value);
             this.data.world.annotation.setModified();
@@ -1929,6 +2150,10 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
         if (!this.selected_box)
             return;
         
+        if (this.data.world && this.data.world.annotation) {
+            this.data.world.annotation.undoManager.takeSnapshot(this.data.world.annotation);
+        }
+
         switch (command){
             case 'x_move_up':
                 this.boxOp.translate_box(this.selected_box, 'x', 0.05);
@@ -1983,6 +2208,14 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
                     this.selected_box.rotation.z += Math.PI;
                 }    
                 break;
+            case 'z_rotate_right_angle':
+                {
+                    const scaleX = this.selected_box.scale.x;
+                    this.selected_box.scale.x = this.selected_box.scale.y;
+                    this.selected_box.scale.y = scaleX;
+                }
+                this.selected_box.rotation.z -= Math.PI/2;
+                break;
             case 'reset':
                 this.selected_box.rotation.x = 0;
                 this.selected_box.rotation.y = 0;
@@ -1991,7 +2224,6 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
                 break;
 
         }
-
         this.on_box_changed(this.selected_box);    
         
     };
@@ -2038,6 +2270,25 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
                 this.data.scale_point_size(0.8);
                 this.render();
                 break;
+            case 'z':
+                if (ev.ctrlKey || ev.metaKey) {
+                    ev.preventDefault();
+                    if (ev.shiftKey) {
+                        this.redo();
+                    } else {
+                        this.undo();
+                    }
+                    break;
+                }
+                this.viewManager.mainView.transform_control.showX = ! this.viewManager.mainView.transform_control.showX;
+                break;
+            case 'y':
+                if (ev.ctrlKey || ev.metaKey) {
+                    ev.preventDefault();
+                    this.redo();
+                    break;
+                }
+                break;
             case '1': 
                 this.select_previous_object();
                 break;
@@ -2076,9 +2327,6 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
                 self.on_box_changed(this.selected_box);
                 break;
             */
-            case 'z': // X
-                this.viewManager.mainView.transform_control.showX = ! this.viewManager.mainView.transform_control.showX;
-                break;
             case 'x': // Y
                 this.viewManager.mainView.transform_control.showY = ! this.viewManager.mainView.transform_control.showY;
                 break;
@@ -2360,6 +2608,8 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
             this.cancelFocus(this.selected_box);
         }
 
+        this._clearStackPreview(false);
+
         if (this.viewManager.mainView && this.viewManager.mainView.transform_control.visible)
         {
             //unselect first time
@@ -2384,6 +2634,35 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
         
     };
 
+
+    this.undo = async function() {
+        if (await this.restoreLastBatchDelete())
+            return;
+
+        if (this.data.world && this.data.world.annotation) {
+            var result = this.data.world.annotation.undo();
+            if (result) {
+                this.imageContextManager.attachWorld(this.data.world);
+                this.imageContextManager.render_2d_image();
+                this.render2dLabels(this.data.world);
+                this.render();
+                this.header.updateModifiedStatus();
+            }
+        }
+    };
+
+    this.redo = function() {
+        if (this.data.world && this.data.world.annotation) {
+            var result = this.data.world.annotation.redo();
+            if (result) {
+                this.imageContextManager.attachWorld(this.data.world);
+                this.imageContextManager.render_2d_image();
+                this.render2dLabels(this.data.world);
+                this.render();
+                this.header.updateModifiedStatus();
+            }
+        }
+    };
 
     this.remove_box = function(box, render=true){
         if (box === this.selected_box){
@@ -2489,7 +2768,10 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
             box.boxEditor.onBoxChanged();
         }
         else{
-            console.error("what?");
+            console.warn("[StackAnno] on_box_changed skipped boxEditor sync", {
+                frame: box.world && box.world.frameInfo ? box.world.frameInfo.frame : null,
+                objId: box.obj_track_id || null,
+            });
         }
 
         this.autoAdjust.syncFollowers(box);
@@ -2673,8 +2955,537 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
     };
 
     this.onAnnotationUpdatedByOthers = function(scene, frames){
-        this.data.onAnnotationUpdatedByOthers(scene, frames);
+        return this.data.onAnnotationUpdatedByOthers(scene, frames);
     }
+
+    this.openStackAnnotationPanel = function() {
+        if (!this.selected_box) {
+            this.infoBox.show("Error", "Please select a box first.");
+            return;
+        }
+        if (!this.selected_box.obj_track_id) {
+            this.infoBox.show("Error", "Please assign object track ID first.");
+            return;
+        }
+
+        const scene = this.data.world.frameInfo.scene;
+        const frame = this.data.world.frameInfo.frame;
+        const objId = this.selected_box.obj_track_id;
+
+        const self = this;
+        fetch("/propagate_init?scene=" + encodeURIComponent(scene) +
+              "&frame=" + encodeURIComponent(frame) +
+              "&obj_id=" + encodeURIComponent(objId))
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    self.infoBox.show("Error", data.error);
+                    return;
+                }
+                self._showPropagationPanel(data);
+            })
+            .catch(err => {
+                self.infoBox.show("Error", "Failed to init stack annotation: " + err.message);
+            });
+    };
+
+    this.openPropagationPanel = function() {
+        this.openStackAnnotationPanel();
+    };
+
+    this._showPropagationPanel = function(initData) {
+        const panel = document.getElementById("propagation-panel");
+        if (!panel) return;
+        const self = this;
+
+        const sp = this.spatialPropagation;
+        sp.init(
+            initData.scene,
+            initData.anchor_frame,
+            initData.obj_id,
+            initData.box_psr,
+            initData.reference_count,
+            initData.frame_ids,
+            initData.current_idx,
+            initData.obj_type,
+            initData.obj_attr,
+            this.stackReference ? this.stackReference.frame : initData.anchor_frame,
+            this.stackReference ? this.stackReference.psr : initData.box_psr,
+            this.stackReference ? this.stackReference.frameRadius : 4,
+            this.stackReference ? this.stackReference.framesUsed : null
+        );
+
+        document.getElementById("propagation-obj-info").textContent =
+            initData.scene + " | obj:" + initData.obj_id +
+            " | ref:" + initData.reference_count + "pts | frame:" + initData.anchor_frame;
+
+        this._updatePropagationProgress(initData.current_idx, initData.total_frames, initData.anchor_frame);
+
+        document.getElementById("propagation-method").textContent = "";
+        document.getElementById("propagation-point-count").textContent = "";
+        document.getElementById("propagation-stack-radius").value = String(
+            this.stackReference ? this.stackReference.frameRadius : 4
+        );
+        self._showStackStatus("");
+        self._clearStackPreview(false);
+        self._refreshStackReferenceStatus();
+
+        document.getElementById("propagation-controls").style.display = "flex";
+
+        panel.style.display = "block";
+
+        const closeBtn = document.getElementById("propagation-close");
+        closeBtn.onclick = function() { self._closePropagationPanel(); };
+
+        document.getElementById("propagation-btn-forward").onclick = function() {
+            self._startPropagation("forward");
+        };
+        document.getElementById("propagation-btn-backward").onclick = function() {
+            self._startPropagation("backward");
+        };
+        document.getElementById("propagation-btn-stop").onclick = function() {
+            self._stopPropagation();
+        };
+        document.getElementById("propagation-btn-stack-show").onclick = function() {
+            self._showStackPreview();
+        };
+        document.getElementById("propagation-btn-stack-lock").onclick = function() {
+            self._lockStackReference();
+        };
+        document.getElementById("propagation-btn-stack-clear").onclick = function() {
+            self._clearStackPreview(true);
+        };
+
+        self._makePanelDraggable(panel);
+    };
+
+    this._getBoxPsrFromBox = function(box) {
+        if (!box) {
+            return null;
+        }
+        return {
+            position: {
+                x: box.position.x,
+                y: box.position.y,
+                z: box.position.z,
+            },
+            scale: {
+                x: box.scale.x,
+                y: box.scale.y,
+                z: box.scale.z,
+            },
+            rotation: {
+                x: box.rotation.x,
+                y: box.rotation.y,
+                z: box.rotation.z,
+            },
+        };
+    };
+
+    this._showStackStatus = function(message, isError=false) {
+        const status = document.getElementById("propagation-stack-status");
+        if (!status) {
+            return;
+        }
+        status.textContent = message || "";
+        status.style.color = isError ? "#fca5a5" : "#93c5fd";
+    };
+
+    this._clearStackPreview = function(clearStatus=true) {
+        if (this.stackPreviewMesh) {
+            if (this.stackPreviewMesh.parent) {
+                this.stackPreviewMesh.parent.remove(this.stackPreviewMesh);
+            }
+            if (this.stackPreviewMesh.geometry) {
+                this.stackPreviewMesh.geometry.dispose();
+            }
+            if (this.stackPreviewMesh.material) {
+                this.stackPreviewMesh.material.dispose();
+            }
+            this.stackPreviewMesh = null;
+        }
+        if (clearStatus) {
+            this._showStackStatus("");
+        }
+        this.render();
+    };
+
+    this._refreshStackReferenceStatus = function() {
+        const status = document.getElementById("propagation-reference-status");
+        if (!status) {
+            return;
+        }
+
+        if (this.stackReference && this.stackReference.frame) {
+            const usedCount = this.stackReference.framesUsed ? this.stackReference.framesUsed.length : null;
+            status.textContent =
+                "Locked reference: frame " + this.stackReference.frame +
+                " | fixed size + yaw refine enabled | " +
+                (usedCount ? ("apply " + usedCount + " stacked frames") : ("radius ±" + this.stackReference.frameRadius));
+            status.style.color = "#a7f3d0";
+            return;
+        }
+
+        if (this.data.world && this.data.world.frameInfo) {
+            status.textContent =
+                "No locked reference yet. Current frame " +
+                this.data.world.frameInfo.frame +
+                " will be used as a temporary reference if you apply now.";
+            status.style.color = "#fde68a";
+            return;
+        }
+
+        status.textContent = "";
+    };
+
+    this._lockStackReference = function() {
+        if (!this.selected_box || !this.data.world || !this.data.world.frameInfo) {
+            this.infoBox.show("Error", "Please select a box first.");
+            return;
+        }
+
+        const radiusInput = document.getElementById("propagation-stack-radius");
+        let frameRadius = parseInt(radiusInput ? radiusInput.value : "4", 10);
+        if (isNaN(frameRadius) || frameRadius < 0) {
+            frameRadius = 4;
+        }
+
+        const psr = this._getBoxPsrFromBox(this.selected_box);
+        const frame = this.data.world.frameInfo.frame;
+        const previewMatchesCurrent =
+            this.lastStackPreviewScene === this.data.world.frameInfo.scene &&
+            this.lastStackPreviewFrame === frame &&
+            this.lastStackPreviewRadius === frameRadius;
+        this.stackReference = {
+            frame: frame,
+            psr: psr,
+            frameRadius: frameRadius,
+            framesUsed: (previewMatchesCurrent && this.lastStackPreviewFrames) ? Array.from(this.lastStackPreviewFrames) : null,
+        };
+        console.log("[StackAnno] lock-reference " + JSON.stringify({
+            scene: this.data.world.frameInfo.scene,
+            frame: frame,
+            objId: this.selected_box ? this.selected_box.obj_track_id : null,
+            frameRadius: frameRadius,
+            previewMatchesCurrent: previewMatchesCurrent,
+            framesUsed: this.stackReference.framesUsed,
+            referencePsr: {
+                position: {
+                    x: Number(psr.position.x.toFixed(3)),
+                    y: Number(psr.position.y.toFixed(3)),
+                    z: Number(psr.position.z.toFixed(3)),
+                },
+                rotation: {
+                    x: Number(psr.rotation.x.toFixed(3)),
+                    y: Number(psr.rotation.y.toFixed(3)),
+                    z: Number(psr.rotation.z.toFixed(3)),
+                },
+                scale: {
+                    x: Number(psr.scale.x.toFixed(3)),
+                    y: Number(psr.scale.y.toFixed(3)),
+                    z: Number(psr.scale.z.toFixed(3)),
+                },
+            },
+        }));
+        this.spatialPropagation.setFixedReference(frame, psr, frameRadius, this.stackReference.framesUsed);
+        this._showStackStatus("Locked stack reference on frame " + frame + ", yaw refinement is enabled during propagation.");
+        this._refreshStackReferenceStatus();
+    };
+
+    this._showStackPreview = async function() {
+        if (!this.selected_box) {
+            this.infoBox.show("Error", "Please select a box first.");
+            return;
+        }
+        if (!this.data.world || !this.data.world.frameInfo) {
+            this.infoBox.show("Error", "Current frame is not ready.");
+            return;
+        }
+
+        const radiusInput = document.getElementById("propagation-stack-radius");
+        let frameRadius = parseInt(radiusInput ? radiusInput.value : "4", 10);
+        if (isNaN(frameRadius) || frameRadius < 0) {
+            frameRadius = 4;
+            if (radiusInput) {
+                radiusInput.value = "4";
+            }
+        }
+
+        const scene = this.data.world.frameInfo.scene;
+        const frame = this.data.world.frameInfo.frame;
+        const objId = this.selected_box.obj_track_id || "";
+        const boxPsr = this._getBoxPsrFromBox(this.selected_box);
+
+        this._showStackStatus("Loading stacked points...");
+
+        try {
+            const params = new URLSearchParams({
+                scene: scene,
+                frame: frame,
+                obj_id: objId,
+                box_psr: JSON.stringify(boxPsr),
+                frame_radius: String(frameRadius),
+                margin: "1.2",
+                max_points: "30000",
+            });
+            const resp = await fetch("/stack_object_points?" + params.toString());
+            const data = await resp.json();
+            if (data.error) {
+                this._showStackStatus(data.error, true);
+                return;
+            }
+
+            const points = data.points || [];
+            if (!points.length) {
+                this._showStackStatus("No stacked points returned.", true);
+                return;
+            }
+            this.lastStackPreviewFrames = Array.isArray(data.frames_used) ? data.frames_used.map(f => String(f)) : [];
+            this.lastStackPreviewScene = scene;
+            this.lastStackPreviewFrame = frame;
+            this.lastStackPreviewRadius = frameRadius;
+            console.log("[StackAnno] preview-stack " + JSON.stringify({
+                scene: scene,
+                frame: frame,
+                objId: objId,
+                frameRadius: frameRadius,
+                framesUsed: data.frames_used || [],
+                pointCount: data.point_count || points.length,
+                rawPointCount: data.raw_point_count || points.length,
+            }));
+
+            this._clearStackPreview(false);
+
+            const positions = new Float32Array(points.length * 3);
+            const colors = new Float32Array(points.length * 3);
+            for (let i = 0; i < points.length; i++) {
+                positions[i * 3] = points[i][0];
+                positions[i * 3 + 1] = points[i][1];
+                positions[i * 3 + 2] = points[i][2];
+                colors[i * 3] = 0.30;
+                colors[i * 3 + 1] = 0.85;
+                colors[i * 3 + 2] = 1.00;
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+            geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+            geometry.computeBoundingSphere();
+
+            const material = new THREE.PointsMaterial({
+                size: Math.max(this.data.cfg.point_size * 1.6, 2.0),
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.85,
+                sizeAttenuation: false,
+            });
+
+            this.stackPreviewMesh = new THREE.Points(geometry, material);
+            this.stackPreviewMesh.name = "stack-preview";
+            this.data.world.webglGroup.add(this.stackPreviewMesh);
+            this.render();
+
+            const usedFrames = (data.frames_used || []).length;
+            this._showStackStatus(
+                "Stacked " + usedFrames + " frames, " +
+                (data.point_count || points.length) + " pts (" +
+                (data.raw_point_count || points.length) + " raw)"
+            );
+        } catch (err) {
+            this._showStackStatus("Failed to stack points: " + err.message, true);
+        }
+    };
+
+    this._makePanelDraggable = function(panel) {
+        const header = document.getElementById("propagation-panel-header");
+        if (!header) return;
+
+        let isDragging = false;
+        let startX, startY, startLeft, startTop;
+
+        header.style.cursor = "move";
+
+        header.onmousedown = function(e) {
+            if (e.target.id === "propagation-close") return;
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            const rect = panel.getBoundingClientRect();
+            startLeft = rect.left;
+            startTop = rect.top;
+            panel.style.transition = "none";
+            document.body.style.userSelect = "none";
+            e.preventDefault();
+        };
+
+        document.addEventListener("mousemove", function(e) {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            panel.style.left = (startLeft + dx) + "px";
+            panel.style.top = (startTop + dy) + "px";
+            panel.style.transform = "none";
+        });
+
+        document.addEventListener("mouseup", function() {
+            if (!isDragging) return;
+            isDragging = false;
+            document.body.style.userSelect = "";
+        });
+    };
+
+    this._startPropagation = function(direction) {
+        const self = this;
+        const sp = this.spatialPropagation;
+        const radiusInput = document.getElementById("propagation-stack-radius");
+        let frameRadius = parseInt(radiusInput ? radiusInput.value : "4", 10);
+        if (isNaN(frameRadius) || frameRadius < 0) {
+            frameRadius = 4;
+        }
+
+        if (this.stackReference) {
+            sp.setFixedReference(this.stackReference.frame, this.stackReference.psr, frameRadius, this.stackReference.framesUsed);
+            this._showStackStatus("Using locked stack reference from frame " + this.stackReference.frame + ".");
+        } else if (this.selected_box && this.data.world && this.data.world.frameInfo) {
+            const currentPsr = this._getBoxPsrFromBox(this.selected_box);
+            sp.setFixedReference(this.data.world.frameInfo.frame, currentPsr, frameRadius);
+            this._showStackStatus("Using current frame as temporary fixed reference.");
+        }
+        this._refreshStackReferenceStatus();
+        console.log("[StackAnno] apply-start " + JSON.stringify({
+            scene: this.data.world && this.data.world.frameInfo ? this.data.world.frameInfo.scene : null,
+            startFrame: this.data.world && this.data.world.frameInfo ? this.data.world.frameInfo.frame : null,
+            objId: this.selected_box ? this.selected_box.obj_track_id : null,
+            direction: direction,
+            frameRadius: frameRadius,
+            lockedReference: this.stackReference ? {
+                frame: this.stackReference.frame,
+                framesUsed: this.stackReference.framesUsed || null,
+            } : null,
+        }));
+
+        document.getElementById("propagation-controls").style.display = "none";
+
+        sp.start(direction,
+            function(stepResult) {
+                return self._onPropagationStep(stepResult);
+            },
+            function() {
+                self._onPropagationStop();
+            }
+        );
+    };
+
+    this._onPropagationStep = function(stepResult) {
+        const self = this;
+        const sp = this.spatialPropagation;
+        const progress = sp.getProgress();
+        const scene = sp.state.scene;
+        const tgtFrame = stepResult.frame;
+
+        return new Promise(function(resolve) {
+            self.load_world(scene, tgtFrame, function() {
+                Promise.resolve(
+                    sp.applyBoxToCurrentFrame(stepResult.psr, sp.state.objType, sp.state.objAttr)
+                ).then((applyResult) => {
+                    const box = applyResult && applyResult.box
+                        ? applyResult.box
+                        : self.data.world.annotation.findBoxByTrackId(sp.state.objId);
+                    if (box) {
+                        self.selectBox(box);
+                        self.focusOnSelectedBox(box);
+                    }
+
+                    self._updatePropagationProgress(progress.current, progress.total, tgtFrame);
+
+                    document.getElementById("propagation-method").textContent =
+                        stepResult.method ? ("mode: " + stepResult.method) : "";
+                    document.getElementById("propagation-point-count").textContent =
+                        "pts: " + (stepResult.pointCount !== null ? stepResult.pointCount : "?");
+
+                    resolve(applyResult || null);
+                }).catch((err) => {
+                    self.infoBox.show("Error", "Failed to apply stacked box: " + err.message);
+                    resolve();
+                });
+            });
+        });
+    };
+
+    this._switchToFrameLight = async function(sceneName, frame, onFinished) {
+        var self = this;
+
+        if (this.data.world && !this.data.world.preloaded()) {
+            console.error("current world is still loading.");
+            return;
+        }
+
+        if (this.selected_box && this.selected_box.in_highlight) {
+            this.cancelFocus(this.selected_box);
+        }
+
+        if (this.viewManager.mainView && this.viewManager.mainView.transform_control.visible) {
+            this.viewManager.mainView.transform_control.detach();
+        }
+
+        var world = await this.data.getWorld(sceneName, frame);
+
+        if (world) {
+            this.data.activate_world(world, function() {
+                document.title = "SUSTech POINTS-" + world.frameInfo.scene;
+                self.moveAxisHelper(world);
+                self.moveRangeCircle(world);
+                self.update_frame_info(world.frameInfo.scene, world.frameInfo.frame);
+                objIdManager.setCurrentScene(world.frameInfo.scene);
+
+                if (world.lidar.points) {
+                    self.render();
+                    if (onFinished) onFinished();
+                } else {
+                    var retries = 0;
+                    var maxRetries = 50;
+                    var checkReady = function() {
+                        if (world.lidar.points) {
+                            self.render();
+                            if (onFinished) onFinished();
+                        } else if (retries < maxRetries) {
+                            retries++;
+                            setTimeout(checkReady, 100);
+                        } else {
+                            self.render();
+                            if (onFinished) onFinished();
+                        }
+                    };
+                    setTimeout(checkReady, 100);
+                }
+            });
+        }
+    };
+
+    this._stopPropagation = function() {
+        this.spatialPropagation.stop();
+        this._closePropagationPanel();
+    };
+
+    this._onPropagationStop = function() {
+        document.getElementById("propagation-controls").style.display = "flex";
+        document.getElementById("propagation-method").textContent = "done";
+    };
+
+    this._updatePropagationProgress = function(current, total, frame) {
+        document.getElementById("propagation-frame-label").textContent =
+            "Frame: " + frame + " (" + (current + 1) + "/" + total + ")";
+        const pct = total > 0 ? ((current + 1) / total * 100) : 0;
+        document.getElementById("propagation-progress-fill").style.width = pct + "%";
+    };
+
+    this._closePropagationPanel = function() {
+        this.spatialPropagation.stop();
+        this._clearStackPreview(true);
+        this._refreshStackReferenceStatus();
+        const panel = document.getElementById("propagation-panel");
+        if (panel) panel.style.display = "none";
+    };
 
     this.init(editorUi);
 

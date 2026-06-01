@@ -356,6 +356,65 @@ function World(data, sceneName, frame, coordinatesOffset, on_preload_finished){
             this.webglGroup.matrixAutoUpdate = false;
     };
 
+    this._roundAngle = function(value)
+    {
+        if (value === null || value === undefined || Number.isNaN(Number(value))){
+            return null;
+        }
+        return Number(Number(value).toFixed(6));
+    };
+
+    this._rotationMatrixToEuler = function(matrix, order)
+    {
+        try{
+            return new THREE.Euler().setFromRotationMatrix(matrix, order || "XYZ");
+        }catch (e){
+            return null;
+        }
+    };
+
+    this._debugYawTransform = function(type, inputEuler, transformMatrix, outputEuler)
+    {
+        if (typeof window !== "undefined" && window.__SUSTECH_DEBUG_YAW__ === false){
+            return;
+        }
+
+        const transformEuler = this._rotationMatrixToEuler(transformMatrix, inputEuler ? inputEuler.order : "XYZ");
+        const pose = this.egoPose ? this.egoPose.egoPose : null;
+        console.log("[YawDebug] " + JSON.stringify({
+            type: type,
+            scene: this.frameInfo ? this.frameInfo.scene : null,
+            frame: this.frameInfo ? this.frameInfo.frame : null,
+            input: inputEuler ? {
+                x: this._roundAngle(inputEuler.x),
+                y: this._roundAngle(inputEuler.y),
+                z: this._roundAngle(inputEuler.z),
+                order: inputEuler.order,
+            } : null,
+            transform: transformEuler ? {
+                x: this._roundAngle(transformEuler.x),
+                y: this._roundAngle(transformEuler.y),
+                z: this._roundAngle(transformEuler.z),
+                order: transformEuler.order,
+            } : null,
+            output: outputEuler ? {
+                x: this._roundAngle(outputEuler.x),
+                y: this._roundAngle(outputEuler.y),
+                z: this._roundAngle(outputEuler.z),
+                order: outputEuler.order,
+            } : null,
+            pose: pose ? {
+                x: pose.x ?? null,
+                y: pose.y ?? null,
+                z: pose.z ?? null,
+                yaw: this._roundAngle(pose.yaw),
+                azimuth: this._roundAngle(pose.azimuth),
+                pitch: this._roundAngle(pose.pitch),
+                roll: this._roundAngle(pose.roll),
+            } : null,
+        }));
+    };
+
     // global scene 
     this.scenePosToLidar = function(pos)
     {
@@ -429,6 +488,7 @@ function World(data, sceneName, frame, coordinatesOffset, on_preload_finished){
         let retQ = rotL.multiply(localToGlobalRot);
 
         let retEuler = new THREE.Euler().setFromQuaternion(retQ, rotEuler.order);
+        this._debugYawTransform("lidar-to-utm", rotEuler, this.trans_lidar_utm, retEuler);
 
         return retEuler;
     }
@@ -446,6 +506,7 @@ function World(data, sceneName, frame, coordinatesOffset, on_preload_finished){
         let retQ = rot.multiply(trans);
 
         let retEuler = new THREE.Euler().setFromQuaternion(retQ, rotEuler.order);
+        this._debugYawTransform("utm-to-lidar", rotEuler, this.trans_utm_lidar, retEuler);
 
         return retEuler;
     }
@@ -606,4 +667,3 @@ function World(data, sceneName, frame, coordinatesOffset, on_preload_finished){
 }
 
 export {World};
-
