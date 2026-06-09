@@ -4,6 +4,7 @@ import string
 import cherrypy
 import os
 import json
+import copy
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('./'))
 
@@ -83,6 +84,32 @@ def _remove_obj_from_annotations(annotations, obj_id):
         if str(box.get("obj_id")) != str(obj_id)
     ]
     return filtered, before_count != len(filtered)
+
+
+def _wrap_angle(angle):
+    return (float(angle) + 3.141592653589793) % (2.0 * 3.141592653589793) - 3.141592653589793
+
+
+def _rotate_obj_yaw_in_annotations(annotations, obj_id, angle_delta, swap_xy=False):
+    changed = False
+    for box in annotations or []:
+        if str(box.get("obj_id")) != str(obj_id):
+            continue
+
+        psr = box.setdefault("psr", {})
+        rotation = psr.setdefault("rotation", {})
+        old_yaw = float(rotation.get("z", 0.0))
+        rotation["z"] = _wrap_angle(old_yaw + float(angle_delta))
+
+        if swap_xy:
+          scale = psr.setdefault("scale", {})
+          old_scale_x = float(scale.get("x", 0.0))
+          scale["x"] = float(scale.get("y", 0.0))
+          scale["y"] = old_scale_x
+
+        changed = True
+
+    return annotations or [], changed
 
 
 class Root(object):
@@ -199,6 +226,59 @@ class Root(object):
           "obj_id": str(obj_id),
           "requested_count": count,
           "target_frames": target_frames,
+          "updated_frames": updated_frames,
+          "backup": backup,
+        }
+      except Exception as e:
+        cherrypy.response.status = 500
+        return {"error": str(e)}
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def rotate_object_yaw_all(self):
+      try:
+        rawbody = cherrypy.request.body.readline().decode('UTF-8')
+        data = json.loads(rawbody)
+
+        scene = data["scene"]
+        obj_id = data["obj_id"]
+        angle_delta = float(data.get("angle_delta", 1.5707963267948966))
+        swap_xy = bool(data.get("swap_xy", False))
+
+        scene_meta = scene_reader.get_one_scene(scene)
+        frames = list(scene_meta.get("frames", []))
+
+        updated_frames = []
+        backup = []
+
+        for frame in frames:
+          ann = scene_reader.read_annotations(scene, frame)
+          original_ann = copy.deepcopy(ann)
+          new_ann, changed = _rotate_obj_yaw_in_annotations(ann, obj_id, angle_delta, swap_xy)
+
+          if not changed:
+            continue
+
+          backup.append({
+            "scene": scene,
+            "frame": frame,
+            "annotation": original_ann,
+          })
+
+          label_dir = os.path.join("./data", scene, "label")
+          os.makedirs(label_dir, exist_ok=True)
+          with open(os.path.join(label_dir, frame + ".json"), "w") as f:
+            json.dump(new_ann, f, indent=2, sort_keys=True)
+
+          updated_frames.append(frame)
+
+        return {
+          "scene": scene,
+          "obj_id": str(obj_id),
+          "angle_delta": angle_delta,
+          "swap_xy": swap_xy,
+          "target_frames": frames,
           "updated_frames": updated_frames,
           "backup": backup,
         }

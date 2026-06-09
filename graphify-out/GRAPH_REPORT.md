@@ -1,16 +1,16 @@
-# Graph Report - SUSTechPOINTS  (2026-06-01)
+# Graph Report - SUSTechPOINTS  (2026-06-09)
 
 ## Corpus Check
-- 105 files · ~1,339,933 words
+- 105 files · ~1,340,583 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 7744 nodes · 17340 edges · 247 communities (143 shown, 104 thin omitted)
+- 7842 nodes · 17462 edges · 277 communities (156 shown, 121 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 260 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `50fa1887`
+- Built from commit: `5c084b3a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -118,7 +118,6 @@
 - [[_COMMUNITY_Community 100|Community 100]]
 - [[_COMMUNITY_Community 101|Community 101]]
 - [[_COMMUNITY_Community 102|Community 102]]
-- [[_COMMUNITY_Community 103|Community 103]]
 - [[_COMMUNITY_Community 104|Community 104]]
 - [[_COMMUNITY_Community 105|Community 105]]
 - [[_COMMUNITY_Community 106|Community 106]]
@@ -165,7 +164,6 @@
 - [[_COMMUNITY_Community 147|Community 147]]
 - [[_COMMUNITY_Community 148|Community 148]]
 - [[_COMMUNITY_Community 149|Community 149]]
-- [[_COMMUNITY_Community 150|Community 150]]
 - [[_COMMUNITY_Community 151|Community 151]]
 - [[_COMMUNITY_Community 152|Community 152]]
 - [[_COMMUNITY_Community 153|Community 153]]
@@ -202,6 +200,7 @@
 - [[_COMMUNITY_Community 185|Community 185]]
 - [[_COMMUNITY_Community 186|Community 186]]
 - [[_COMMUNITY_Community 187|Community 187]]
+- [[_COMMUNITY_Community 188|Community 188]]
 - [[_COMMUNITY_Community 189|Community 189]]
 - [[_COMMUNITY_Community 190|Community 190]]
 - [[_COMMUNITY_Community 191|Community 191]]
@@ -211,6 +210,7 @@
 - [[_COMMUNITY_Community 195|Community 195]]
 - [[_COMMUNITY_Community 196|Community 196]]
 - [[_COMMUNITY_Community 198|Community 198]]
+- [[_COMMUNITY_Community 199|Community 199]]
 - [[_COMMUNITY_Community 200|Community 200]]
 - [[_COMMUNITY_Community 201|Community 201]]
 - [[_COMMUNITY_Community 202|Community 202]]
@@ -223,26 +223,50 @@
 - [[_COMMUNITY_Community 209|Community 209]]
 - [[_COMMUNITY_Community 210|Community 210]]
 - [[_COMMUNITY_Community 211|Community 211]]
-- [[_COMMUNITY_Community 212|Community 212]]
 - [[_COMMUNITY_Community 213|Community 213]]
 - [[_COMMUNITY_Community 214|Community 214]]
 - [[_COMMUNITY_Community 215|Community 215]]
+- [[_COMMUNITY_Community 217|Community 217]]
 - [[_COMMUNITY_Community 218|Community 218]]
 - [[_COMMUNITY_Community 219|Community 219]]
 - [[_COMMUNITY_Community 220|Community 220]]
+- [[_COMMUNITY_Community 221|Community 221]]
 - [[_COMMUNITY_Community 222|Community 222]]
+- [[_COMMUNITY_Community 223|Community 223]]
 - [[_COMMUNITY_Community 224|Community 224]]
+- [[_COMMUNITY_Community 225|Community 225]]
+- [[_COMMUNITY_Community 226|Community 226]]
+- [[_COMMUNITY_Community 229|Community 229]]
 - [[_COMMUNITY_Community 231|Community 231]]
 - [[_COMMUNITY_Community 232|Community 232]]
+- [[_COMMUNITY_Community 233|Community 233]]
 - [[_COMMUNITY_Community 234|Community 234]]
 - [[_COMMUNITY_Community 235|Community 235]]
 - [[_COMMUNITY_Community 236|Community 236]]
+- [[_COMMUNITY_Community 237|Community 237]]
+- [[_COMMUNITY_Community 238|Community 238]]
+- [[_COMMUNITY_Community 239|Community 239]]
 - [[_COMMUNITY_Community 240|Community 240]]
+- [[_COMMUNITY_Community 241|Community 241]]
 - [[_COMMUNITY_Community 242|Community 242]]
 - [[_COMMUNITY_Community 243|Community 243]]
+- [[_COMMUNITY_Community 244|Community 244]]
 - [[_COMMUNITY_Community 245|Community 245]]
+- [[_COMMUNITY_Community 246|Community 246]]
+- [[_COMMUNITY_Community 247|Community 247]]
 - [[_COMMUNITY_Community 248|Community 248]]
 - [[_COMMUNITY_Community 249|Community 249]]
+- [[_COMMUNITY_Community 250|Community 250]]
+- [[_COMMUNITY_Community 251|Community 251]]
+- [[_COMMUNITY_Community 252|Community 252]]
+- [[_COMMUNITY_Community 253|Community 253]]
+- [[_COMMUNITY_Community 254|Community 254]]
+- [[_COMMUNITY_Community 255|Community 255]]
+- [[_COMMUNITY_Community 256|Community 256]]
+- [[_COMMUNITY_Community 257|Community 257]]
+- [[_COMMUNITY_Community 274|Community 274]]
+- [[_COMMUNITY_Community 275|Community 275]]
+- [[_COMMUNITY_Community 276|Community 276]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `$()` - 695 edges
@@ -263,119 +287,115 @@
   tools/local_stack_demo.py → algos/spatial_propagation.py
 - `main()` --calls--> `read_pcd_xyz()`  [INFERRED]
   tools/local_stack_demo.py → algos/spatial_propagation.py
-- `renewObject()` --calls--> `kernelFunction()`  [INFERRED]
-  public/js/lib/ml/lalolib.js → public/js/lib/ml/ml.js
-- `d()` --calls--> `Gc()`  [INFERRED]
-  public/js/lib/ml/lalolib.js → public/js/lib/three.min.js
+- `_world_center_from_box()` --calls--> `pose_to_matrix()`  [EXTRACTED]
+  /home/zhu/桌面/SUSTechPOINTS/algos/dynamic_heading.py → algos/spatial_propagation.py
+- `fit_moving_direction_by_id()` --calls--> `PoseLoader`  [EXTRACTED]
+  /home/zhu/桌面/SUSTechPOINTS/algos/dynamic_heading.py → algos/spatial_propagation.py
 
 ## Import Cycles
 - 1-file cycle: `algos/__init__.py -> algos/__init__.py`
 
-## Communities (247 total, 104 thin omitted)
+## Communities (277 total, 121 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.01
-Nodes (240): _addedEvent, addUniform(), _alignedPosition, allocTexUnits(), AmbientLightProbe, AnimationUtils, arrayCacheF32, arrayCacheI32 (+232 more)
+Nodes (235): _addedEvent, addUniform(), _alignedPosition, allocTexUnits(), AnimationUtils, arrayCacheF32, arrayCacheI32, AudioContext (+227 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.01
-Nodes (137): $(), add(), addComplexMatrices(), addComplexMatrixMatrix(), addComplexReal(), addComplexVectors(), addComplexVectorVector(), addMatrices() (+129 more)
+Nodes (160): $(), add(), addComplexMatrices(), addComplexMatrixMatrix(), addComplexReal(), addComplexVectors(), addComplexVectorVector(), addMatrices() (+152 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.01
-Nodes (96): addLineNumbers(), addUniform(), allocTexUnits(), AmbientLight, AmbientLightProbe, ArcCurve, ArrayCamera, Bone (+88 more)
+Nodes (108): addLineNumbers(), addUniform(), allocTexUnits(), AmbientLight, AmbientLightProbe, ArcCurve, ArrayCamera, arraysEqual() (+100 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.01
-Nodes (101): $(), ar(), array2vec(), arrayCopy(), bf(), Complex_I, conj(), df() (+93 more)
+Nodes (148): renewObject(), $(), array2mat(), arrayCopy(), bf(), chol(), Complex_I, ComplexMatrix() (+140 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.02
-Nodes (85): al(), Ar(), as(), bind(), br(), cn, cs(), Dl (+77 more)
+Cohesion: 0.01
+Nodes (84): al(), Ar(), as(), bind(), br(), cl(), cn, cs() (+76 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.06
-Nodes (130): addMatrices(), addScalarspMatrix(), addScalarspVector(), addVectors(), appendRow(), armijo(), armijodir(), backsubstitution() (+122 more)
+Cohesion: 0.05
+Nodes (144): addMatrices(), addVectors(), appendRow(), ar(), armijo(), armijodir(), array2vec(), backsubstitution() (+136 more)
 
 ### Community 6 - "Community 6"
-Cohesion: 0.04
-Nodes (11): jc, js, qs, rt, setDirection(), setLength(), ti, xi() (+3 more)
+Cohesion: 0.03
+Nodes (14): Fh, he, jc, jn(), js, kn, qn(), setDirection() (+6 more)
 
 ### Community 7 - "Community 7"
 Cohesion: 0.03
-Nodes (14): ce, copy(), ds(), ga, jn(), kn, oi, Ph (+6 more)
+Nodes (11): bt(), ce, copy(), ds(), ee, Lh, Ph, qe (+3 more)
 
 ### Community 8 - "Community 8"
 Cohesion: 0.04
-Nodes (4): Line3, Plane, Ray, Sphere
+Nodes (10): checkBufferGeometryIntersection(), checkIntersection(), HemisphereLight, HemisphereLightProbe, Plane, Ray, SphericalHarmonics3, Sprite (+2 more)
 
 ### Community 9 - "Community 9"
-Cohesion: 0.05
-Nodes (14): LineBasicMaterial, LineDashedMaterial, MeshBasicMaterial, MeshDepthMaterial, MeshDistanceMaterial, MeshLambertMaterial, MeshMatcapMaterial, MeshNormalMaterial (+6 more)
+Cohesion: 0.04
+Nodes (15): LineBasicMaterial, LineDashedMaterial, MeshBasicMaterial, MeshDepthMaterial, MeshDistanceMaterial, MeshLambertMaterial, MeshMatcapMaterial, MeshNormalMaterial (+7 more)
 
 ### Community 10 - "Community 10"
 Cohesion: 0.04
-Nodes (7): ArrowHelper, Object3D, Scene, WebGLRenderer(), WebGLRenderTarget, WebXRController, WebXRManager
+Nodes (9): Camera, ceilPowerOfTwo(), CubeCamera, CubicPoly(), Object3D, Skeleton, SkinnedMesh, SpotLightHelper (+1 more)
 
 ### Community 11 - "Community 11"
 Cohesion: 0.04
-Nodes (11): checkBufferGeometryIntersection(), checkIntersection(), HemisphereLightProbe, Line3, ParametricGeometry, Plane, Ray, SphericalHarmonics3 (+3 more)
+Nodes (9): checkBufferGeometryIntersection(), checkIntersection(), HemisphereLight, HemisphereLightProbe, Plane, Ray, SphericalHarmonics3, Sprite (+1 more)
 
 ### Community 12 - "Community 12"
 Cohesion: 0.06
-Nodes (112): addScalarspMatrix(), addScalarspVector(), applyspMatrix(), armijo(), armijodir(), backsubstitution(), bfgs(), bidiagonalize() (+104 more)
+Nodes (113): applyspMatrix(), armijo(), armijodir(), backsubstitution(), bfgs(), bidiagonalize(), cgnr(), cgnrdense() (+105 more)
 
 ### Community 13 - "Community 13"
 Cohesion: 0.05
-Nodes (112): $n, af(), ag(), ao(), apply(), applyComplexMatrix(), applyComplexVector(), applyMatrix() (+104 more)
+Nodes (91): dc, Oa, cc(), af(), ag(), apply(), applyComplexMatrix(), applyComplexVector() (+83 more)
 
 ### Community 14 - "Community 14"
-Cohesion: 0.02
-Nodes (27): CatmullRom(), CatmullRomCurve3, CubicBezierCurve, CubicBezierCurve3, EllipseCurve, ExtrudeGeometry, GridHelper, InstancedBufferAttribute (+19 more)
+Cohesion: 0.05
+Nodes (13): CatmullRom(), CubicBezierCurve, CubicBezierCurve3, LineCurve, LineCurve3, ObjectLoader, QuadraticBezier(), QuadraticBezierCurve (+5 more)
 
 ### Community 15 - "Community 15"
 Cohesion: 0.02
-Nodes (25): bindSkeletons(), co, dc, Do, Fa, Ia, io, no (+17 more)
+Nodes (14): co, Do, Fa, Ia, io, kh, no, Pa (+6 more)
 
 ### Community 16 - "Community 16"
 Cohesion: 0.03
-Nodes (31): _(), Bg(), bt(), Cr(), cs(), Iy(), jg(), jl() (+23 more)
+Nodes (31): _(), bt(), Cr(), cs(), dh(), ef(), Ep(), gd() (+23 more)
 
 ### Community 17 - "Community 17"
 Cohesion: 0.06
 Nodes (65): _angular_distance(), _compute_world_yaw(), _equivalent_heading_candidates(), _find_box_by_obj_id(), _find_motion_neighbor(), fit_moving_direction_by_id(), _frame_to_pose_id(), _select_equivalent_heading() (+57 more)
 
-### Community 19 - "Community 19"
-Cohesion: 0.03
-Nodes (4): bt(), ee, Lh, Zt()
-
 ### Community 20 - "Community 20"
-Cohesion: 0.05
-Nodes (11): EdgesGeometry, Frustum, InterleavedBufferAttribute, isUniqueEdge(), Line, Mesh, _points, PolyhedronGeometry (+3 more)
+Cohesion: 0.06
+Nodes (8): Frustum, InterleavedBufferAttribute, isUniqueEdge(), Line, Mesh, _points, testPoint(), WireframeGeometry
 
 ### Community 21 - "Community 21"
-Cohesion: 0.04
-Nodes (12): bl, clone(), Gc(), hc, ks, Mh, sc, Ss() (+4 more)
+Cohesion: 0.05
+Nodes (10): _a, bl, clone(), Gc(), hc, ks, Mh, uc (+2 more)
 
 ### Community 22 - "Community 22"
-Cohesion: 0.09
-Nodes (64): ag(), apply(), applyComplexMatrix(), applyComplexVector(), applyMatrix(), applyspVector(), applyVector(), c() (+56 more)
+Cohesion: 0.07
+Nodes (80): af(), ag(), apply(), applyComplexMatrix(), applyComplexVector(), applyMatrix(), applyspVector(), applyVector() (+72 more)
 
 ### Community 23 - "Community 23"
 Cohesion: 0.06
-Nodes (6): _a, ea, eo(), Vn(), Wa, Xa
+Nodes (7): ea, eo(), oi, setFromCamera(), Vn(), Wa, Xa
 
 ### Community 24 - "Community 24"
-Cohesion: 0.08
-Nodes (12): AnimationLoader, AudioLoader, BufferGeometryLoader, CompressedTextureLoader, CubeTextureLoader, DataTextureLoader, DefaultLoadingManager, FileLoader (+4 more)
+Cohesion: 0.09
+Nodes (11): AnimationLoader, AudioLoader, BufferGeometryLoader, CompressedTextureLoader, DataTextureLoader, DefaultLoadingManager, FileLoader, FontLoader (+3 more)
 
 ### Community 25 - "Community 25"
-Cohesion: 0.04
-Nodes (12): AxesHelper, cloneUniforms(), DirectionalLight, InstancedInterleavedBuffer, LightShadow, mergeUniforms(), Path, PointLight (+4 more)
+Cohesion: 0.03
+Nodes (15): AxesHelper, CatmullRomCurve3, cloneUniforms(), DirectionalLight, InstancedInterleavedBuffer, LightShadow, mergeUniforms(), Path (+7 more)
 
 ### Community 26 - "Community 26"
-Cohesion: 0.10
-Nodes (11): ac, Ic, lc, load(), loadAsync(), nc, oc, parseImages() (+3 more)
+Cohesion: 0.05
+Nodes (26): ac, bindSkeletons(), Ic, kl, lc, load(), loadAsync(), nc (+18 more)
 
 ### Community 27 - "Community 27"
 Cohesion: 0.08
@@ -391,130 +411,126 @@ Nodes (6): Config, Data, createMainEditor(), pointsGlobalConfig, start(), Spatia
 
 ### Community 30 - "Community 30"
 Cohesion: 0.05
-Nodes (4): Box2, Box3, Box3Helper, satForAxes()
+Nodes (5): Box2, Box3, Box3Helper, satForAxes(), transformVertex()
 
 ### Community 31 - "Community 31"
-Cohesion: 0.11
-Nodes (3): InterleavedBufferAttribute, isUniqueEdge(), WireframeGeometry
-
-### Community 32 - "Community 32"
 Cohesion: 0.05
-Nodes (62): renewObject(), custom_kernel_example(), divMatrices(), divMatrixScalar(), divScalarMatrix(), divScalarVector(), divVectors(), divVectorScalar() (+54 more)
+Nodes (8): Frustum, InterleavedBufferAttribute, isUniqueEdge(), Line, Mesh, Points, testPoint(), WireframeGeometry
 
 ### Community 37 - "Community 37"
 Cohesion: 0.05
-Nodes (10): Color, damp(), euclideanModulo(), Fog, FogExp2, hue2rgb(), Light, LinearToSRGB() (+2 more)
+Nodes (11): Color, damp(), euclideanModulo(), Fog, FogExp2, hue2rgb(), Light, LinearToSRGB() (+3 more)
+
+### Community 38 - "Community 38"
+Cohesion: 0.05
+Nodes (4): Matrix4, OrthographicCamera, PerspectiveCamera, SpotLightShadow
 
 ### Community 39 - "Community 39"
-Cohesion: 0.05
-Nodes (14): ao, constructor(), Fh, gl, hi, kh, ki(), mi() (+6 more)
+Cohesion: 0.04
+Nodes (21): ao, constructor(), fi(), ft(), gi(), go, hi, ki() (+13 more)
 
 ### Community 40 - "Community 40"
-Cohesion: 0.08
-Nodes (7): Color, damp(), euclideanModulo(), hue2rgb(), LinearToSRGB(), pingpong(), SRGBToLinear()
+Cohesion: 0.05
+Nodes (10): Color, damp(), euclideanModulo(), Fog, FogExp2, hue2rgb(), Light, LinearToSRGB() (+2 more)
 
 ### Community 41 - "Community 41"
+Cohesion: 0.17
+Nodes (56): Ak(), al(), b(), Bk(), bl(), Ck(), cl(), Dk() (+48 more)
+
+### Community 42 - "Community 42"
+Cohesion: 0.06
+Nodes (3): ArrowHelper, Euler, Quaternion
+
+### Community 43 - "Community 43"
 Cohesion: 0.18
 Nodes (52): Ak(), al(), Bk(), bl(), Ck(), cl(), cm(), Dk() (+44 more)
 
-### Community 43 - "Community 43"
-Cohesion: 0.16
-Nodes (58): Ak(), al(), b(), Bk(), bl(), Ck(), cl(), cm() (+50 more)
-
 ### Community 45 - "Community 45"
-Cohesion: 0.08
-Nodes (3): LineSegments, LOD, Sphere
+Cohesion: 0.06
+Nodes (3): Line3, LOD, Sphere
 
 ### Community 46 - "Community 46"
-Cohesion: 0.14
-Nodes (26): Annotation(), AutoAdjust(), AuxLidar(), AuxLidarManager(), BoxOp(), Calib(), Lidar(), annMath (+18 more)
+Cohesion: 0.11
+Nodes (27): Annotation(), AutoAdjust(), AuxLidar(), AuxLidarManager(), BoxOp(), Calib(), Lidar(), annMath (+19 more)
 
 ### Community 48 - "Community 48"
-Cohesion: 0.06
-Nodes (11): arrayMax(), BufferGeometry, CircleGeometry, _createPlanes(), ExtrudeGeometry, floorPowerOfTwo(), getTypedArray(), LatheGeometry (+3 more)
+Cohesion: 0.07
+Nodes (7): arrayMax(), BufferGeometry, _createPlanes(), EdgesGeometry, floorPowerOfTwo(), getTypedArray(), ParametricGeometry
 
 ### Community 49 - "Community 49"
 Cohesion: 0.04
-Nodes (15): LineBasicMaterial, LineDashedMaterial, MeshBasicMaterial, MeshDepthMaterial, MeshDistanceMaterial, MeshLambertMaterial, MeshMatcapMaterial, MeshNormalMaterial (+7 more)
+Nodes (16): LineBasicMaterial, LineDashedMaterial, MeshBasicMaterial, MeshDepthMaterial, MeshDistanceMaterial, MeshLambertMaterial, MeshMatcapMaterial, MeshNormalMaterial (+8 more)
 
 ### Community 51 - "Community 51"
-Cohesion: 0.03
-Nodes (21): AxesHelper, CatmullRom(), CubicBezier(), CubicBezierCurve, CubicBezierCurve3, CubicBezierP0(), CubicBezierP1(), CubicBezierP2() (+13 more)
+Cohesion: 0.04
+Nodes (14): ExtrudeGeometry, GridHelper, InstancedBufferAttribute, InstancedBufferGeometry, InstancedInterleavedBuffer, QuadraticBezier(), QuadraticBezierCurve, QuadraticBezierCurve3 (+6 more)
 
 ### Community 52 - "Community 52"
-Cohesion: 0.04
-Nodes (11): ArrowHelper, Camera, CubeCamera, DirectionalLightHelper, HemisphereLight, HemisphereLightHelper, Object3D, PlaneHelper (+3 more)
+Cohesion: 0.03
+Nodes (4): ArrowHelper, Matrix4, Object3D, WebGLRenderer()
 
 ### Community 53 - "Community 53"
-Cohesion: 0.07
-Nodes (46): hs(), us(), xa(), A(), ag(), as(), c(), Cl() (+38 more)
+Cohesion: 0.09
+Nodes (37): hs(), A(), be(), c(), Cl(), d(), Dd(), de() (+29 more)
 
 ### Community 54 - "Community 54"
 Cohesion: 0.05
 Nodes (9): At(), be, ci(), ct(), Et, _s(), St, tc (+1 more)
 
 ### Community 55 - "Community 55"
-Cohesion: 0.11
-Nodes (3): _i, yc, Zn
+Cohesion: 0.04
+Nodes (14): BoxHelper, Camera, CameraHelper, ceilPowerOfTwo(), CubeCamera, CubicPoly(), DirectionalLightHelper, HemisphereLightHelper (+6 more)
+
+### Community 56 - "Community 56"
+Cohesion: 0.04
+Nodes (5): CatmullRomCurve3, InstancedMesh, LineCurve, LineCurve3, Matrix3
 
 ### Community 57 - "Community 57"
-Cohesion: 0.08
-Nodes (5): arrayMax(), BufferGeometry, _createPlanes(), floorPowerOfTwo(), getTypedArray()
-
-### Community 58 - "Community 58"
 Cohesion: 0.06
-Nodes (9): mt(), Oa, Pa, yh, cc(), cc(), ca(), fv() (+1 more)
+Nodes (13): arrayMax(), BoxHelper, BufferGeometry, CameraHelper, _createPlanes(), DirectionalLightHelper, EdgesGeometry, floorPowerOfTwo() (+5 more)
 
 ### Community 60 - "Community 60"
-Cohesion: 0.09
-Nodes (18): autoAnnotate(), BoxEditor(), BoxEditorManager(), ConfigUi, ContextMenu, CropScene, Editor(), checkScene() (+10 more)
+Cohesion: 0.10
+Nodes (17): autoAnnotate(), BoxEditor(), BoxEditorManager(), ConfigUi, CropScene, Editor(), checkScene(), create_logger() (+9 more)
 
 ### Community 62 - "Community 62"
 Cohesion: 0.06
-Nodes (10): BoxHelper, CameraHelper, CubeCamera, DirectionalLightHelper, HemisphereLightHelper, LOD, PlaneHelper, PointLightHelper (+2 more)
+Nodes (3): Line3, LOD, Sphere
 
 ### Community 64 - "Community 64"
-Cohesion: 0.09
-Nodes (4): en, Ke(), tn(), ut()
-
-### Community 65 - "Community 65"
-Cohesion: 0.04
-Nodes (4): randFloat(), randFloatSpread(), randInt(), Vector4
+Cohesion: 0.07
+Nodes (5): en, Ke(), qs, tn(), ut()
 
 ### Community 66 - "Community 66"
-Cohesion: 0.06
-Nodes (8): AnimationObjectGroup, DynamicBufferAttribute(), generateUUID(), InterleavedBuffer, Material, randFloat(), randFloatSpread(), randInt()
+Cohesion: 0.04
+Nodes (12): AnimationObjectGroup, DynamicBufferAttribute(), generateUUID(), InterleavedBuffer, Material, randFloat(), randFloatSpread(), randInt() (+4 more)
 
 ### Community 67 - "Community 67"
 Cohesion: 0.10
-Nodes (4): Material, Scene, WebXRController, WebXRManager
-
-### Community 69 - "Community 69"
-Cohesion: 0.08
-Nodes (3): Curve, CurvePath, LineCurve
+Nodes (4): Scene, Texture, WebXRController, WebXRManager
 
 ### Community 70 - "Community 70"
-Cohesion: 0.08
+Cohesion: 0.10
 Nodes (5): eh, getInput(), getOutput(), removeFilter(), setFilter()
 
 ### Community 71 - "Community 71"
 Cohesion: 0.06
-Nodes (13): createCanvasElement(), createElementNS(), EventDispatcher, ImageLoader, ImageUtils, intersectObject(), Layers, LoadingManager (+5 more)
+Nodes (14): createCanvasElement(), createElementNS(), EventDispatcher, ImageLoader, ImageUtils, intersectObject(), Layers, LoadingManager (+6 more)
 
 ### Community 73 - "Community 73"
-Cohesion: 0.03
-Nodes (18): BoxHelper, CameraHelper, CatmullRomCurve3, cloneUniforms(), DirectionalLight, InstancedInterleavedBuffer, LightShadow, mergeUniforms() (+10 more)
+Cohesion: 0.04
+Nodes (13): AxesHelper, cloneUniforms(), DirectionalLight, LightShadow, mergeUniforms(), Path, PointLight, ShaderMaterial (+5 more)
 
 ### Community 74 - "Community 74"
 Cohesion: 0.12
 Nodes (34): Aa, xs(), zs(), af(), Bf(), Df(), Eh(), f() (+26 more)
 
 ### Community 77 - "Community 77"
-Cohesion: 0.11
-Nodes (38): am(), an(), bm(), Dm(), fn(), gm(), gn(), hm() (+30 more)
+Cohesion: 0.10
+Nodes (39): am(), an(), bm(), Dm(), fn(), gm(), gn(), hm() (+31 more)
 
 ### Community 79 - "Community 79"
-Cohesion: 0.08
+Cohesion: 0.10
 Nodes (29): addContour(), cureLocalIntersections(), earcutLinked(), eliminateHole(), eliminateHoles(), filterPoints(), findHoleBridge(), getLeftmost() (+21 more)
 
 ### Community 81 - "Community 81"
@@ -522,19 +538,19 @@ Cohesion: 0.10
 Nodes (29): addContour(), cureLocalIntersections(), earcutLinked(), eliminateHole(), eliminateHoles(), filterPoints(), findHoleBridge(), getLeftmost() (+21 more)
 
 ### Community 82 - "Community 82"
-Cohesion: 0.05
-Nodes (4): Matrix4, OrthographicCamera, PerspectiveCamera, SpotLightShadow
+Cohesion: 0.11
+Nodes (3): OrthographicCamera, PerspectiveCamera, SpotLightShadow
 
 ### Community 83 - "Community 83"
-Cohesion: 0.09
-Nodes (44): am(), bm(), Bn(), Cn(), Dm(), Dn(), fn(), gm() (+36 more)
+Cohesion: 0.11
+Nodes (36): am(), bm(), Dm(), fn(), gm(), gn(), hm(), im() (+28 more)
 
 ### Community 84 - "Community 84"
 Cohesion: 0.08
-Nodes (32): bs(), ht(), tu, ad(), ap(), cd(), dh(), Ed() (+24 more)
+Nodes (27): bs(), Ms(), ps(), rs(), tu, ws(), ad(), ag() (+19 more)
 
 ### Community 85 - "Community 85"
-Cohesion: 0.08
+Cohesion: 0.09
 Nodes (9): createPath(), createPaths(), Font, getBoneList(), Shape, ShapePath, sign(), SkeletonHelper (+1 more)
 
 ### Community 86 - "Community 86"
@@ -546,104 +562,104 @@ Cohesion: 0.06
 Nodes (14): createCanvasElement(), createElementNS(), EventDispatcher, ImageLoader, ImageUtils, intersectObject(), Layers, LoadingManager (+6 more)
 
 ### Community 88 - "Community 88"
-Cohesion: 0.10
-Nodes (7): _extract_box_psr(), _find_box_by_obj_id(), _normalize_frame(), _parse_psr_payload(), _remove_obj_from_annotations(), Root, object
+Cohesion: 0.09
+Nodes (9): _extract_box_psr(), _find_box_by_obj_id(), _normalize_frame(), _parse_psr_payload(), _remove_obj_from_annotations(), Root, _rotate_obj_yaw_in_annotations(), _wrap_angle() (+1 more)
 
 ### Community 89 - "Community 89"
-Cohesion: 0.08
-Nodes (29): add(), addComplexMatrices(), addComplexMatrixMatrix(), addComplexReal(), addComplexVectors(), addComplexVectorVector(), addMatrixspMatrix(), addScalarComplexMatrix() (+21 more)
+Cohesion: 0.04
+Nodes (11): EllipseCurve, ExtrudeGeometry, GridHelper, InstancedBufferAttribute, InstancedBufferGeometry, InstancedMesh, LightProbe, RectAreaLight (+3 more)
 
 ### Community 90 - "Community 90"
-Cohesion: 0.10
-Nodes (31): ai(), bi(), br(), ci(), di(), dr(), fi(), fr() (+23 more)
+Cohesion: 0.11
+Nodes (29): ai(), bi(), br(), ci(), di(), dr(), fi(), fr() (+21 more)
 
 ### Community 92 - "Community 92"
+Cohesion: 0.16
+Nodes (27): $n, ao(), bo(), co(), Do(), eo(), fo(), go() (+19 more)
+
+### Community 93 - "Community 93"
 Cohesion: 0.17
 Nodes (27): ao(), bo(), co(), Do(), eo(), fo(), go(), ho() (+19 more)
 
-### Community 93 - "Community 93"
-Cohesion: 0.22
-Nodes (18): ef(), Ge(), Hd(), He(), Id(), Ie(), Jd(), Je() (+10 more)
-
-### Community 96 - "Community 96"
-Cohesion: 0.08
-Nodes (5): cl(), hl(), kl, ll, ul
-
 ### Community 100 - "Community 100"
 Cohesion: 0.13
-Nodes (28): mn, af(), an(), ef(), Ge(), Hd(), He(), Id() (+20 more)
+Nodes (28): mn, an(), ef(), Ge(), Hd(), He(), Id(), Ie() (+20 more)
 
 ### Community 101 - "Community 101"
-Cohesion: 0.11
-Nodes (19): Ah(), Er(), Fl(), gg(), ih(), ii(), ko(), ni() (+11 more)
+Cohesion: 0.10
+Nodes (21): Ah(), Er(), Fl(), gg(), ih(), ii(), ko(), lc() (+13 more)
 
-### Community 103 - "Community 103"
-Cohesion: 0.06
-Nodes (12): Camera, checkBufferGeometryIntersection(), checkIntersection(), Frustum, HemisphereLight, Line, Mesh, Points (+4 more)
+### Community 104 - "Community 104"
+Cohesion: 0.12
+Nodes (15): box操作, Object type configuration, SUSTechPOINTS: 3D Point Cloud Annotation Tool, UI说明, 其他功能, 右键菜单, 右键菜单, 屏幕左上区域 (+7 more)
 
 ### Community 105 - "Community 105"
 Cohesion: 0.07
-Nodes (7): AnimationObjectGroup, ceilPowerOfTwo(), CubicPoly(), DynamicBufferAttribute(), generateUUID(), InterleavedBuffer, Skeleton
+Nodes (8): AnimationObjectGroup, DynamicBufferAttribute(), generateUUID(), InterleavedBuffer, Material, randFloat(), randFloatSpread(), randInt()
+
+### Community 106 - "Community 106"
+Cohesion: 0.13
+Nodes (14): 3D Box要求, FAQ, 人, 什么是3D目标检测/追踪, 参考资料, 如何制作, 如何开始标注, 标注范围 (+6 more)
 
 ### Community 107 - "Community 107"
-Cohesion: 0.05
-Nodes (29): BoxGeometry, CylinderGeometry, Float32BufferAttribute, PlaneGeometry, SphereGeometry, TorusGeometry, _alignVector, _changeEvent (+21 more)
+Cohesion: 0.08
+Nodes (23): _alignVector, _changeEvent, _dirVector, _identityQuaternion, _lookAtMatrix, _mouseDownEvent, _mouseUpEvent, _objectChangeEvent (+15 more)
 
 ### Community 108 - "Community 108"
-Cohesion: 0.12
-Nodes (7): bi, dispose(), Ec, gi(), ji(), Ui(), Wi()
+Cohesion: 0.07
+Nodes (7): bi, dispose(), Ec, ji(), rt, sc, Ui()
 
 ### Community 109 - "Community 109"
 Cohesion: 0.17
 Nodes (9): _createRenderTarget(), _getBlurShader(), _getCommonVertexShader(), _getCubemapShader(), _getEncodings(), _getEquirectShader(), _isLDR(), PMREMGenerator (+1 more)
 
 ### Community 110 - "Community 110"
-Cohesion: 0.17
+Cohesion: 0.18
 Nodes (9): _createRenderTarget(), _getBlurShader(), _getCommonVertexShader(), _getCubemapShader(), _getEncodings(), _getEquirectShader(), _isLDR(), PMREMGenerator (+1 more)
 
 ### Community 111 - "Community 111"
-Cohesion: 0.15
-Nodes (20): an(), b(), bn(), cn(), dn(), ei(), fn(), hn() (+12 more)
+Cohesion: 0.12
+Nodes (24): an(), b(), bn(), cn(), dn(), ei(), fn(), hn() (+16 more)
 
 ### Community 112 - "Community 112"
 Cohesion: 0.07
 Nodes (4): os(), ql, rc, vc
 
 ### Community 114 - "Community 114"
-Cohesion: 0.42
-Nodes (9): all_points_in_image_range(), box_to_2d_points(), BoxImageContext(), choose_best_camera_for_point(), point3d_to_homo(), points3d_homo_to_image2d(), points3d_to_image2d(), vector3_nomalize() (+1 more)
+Cohesion: 0.16
+Nodes (10): all_points_in_image_range(), box_to_2d_points(), BoxImageContext(), choose_best_camera_for_point(), ImageContextManager, point3d_to_homo(), points3d_homo_to_image2d(), points3d_to_image2d() (+2 more)
 
-### Community 116 - "Community 116"
-Cohesion: 0.09
-Nodes (3): AudioAnalyser, AudioListener, PositionalAudio
+### Community 117 - "Community 117"
+Cohesion: 0.12
+Nodes (3): _i, yc, Zn
 
 ### Community 118 - "Community 118"
-Cohesion: 0.06
-Nodes (24): addLineNumbers(), AnimationClip, fetchAttributeLocations(), generateDefines(), generateEnvMapBlendingDefine(), generateEnvMapModeDefine(), generateEnvMapTypeDefine(), generateExtensions() (+16 more)
+Cohesion: 0.10
+Nodes (21): addLineNumbers(), fetchAttributeLocations(), generateDefines(), generateEnvMapBlendingDefine(), generateEnvMapModeDefine(), generateEnvMapTypeDefine(), generateExtensions(), generatePrecision() (+13 more)
 
 ### Community 119 - "Community 119"
 Cohesion: 0.15
 Nodes (3): globalObjectCategory, ObjectCategory, UndoManager
 
 ### Community 121 - "Community 121"
-Cohesion: 0.08
-Nodes (35): be(), ch(), de(), dm(), E(), ee(), et(), fe() (+27 more)
+Cohesion: 0.12
+Nodes (21): cd(), ch(), dm(), E(), et(), Fp(), Gp(), hh() (+13 more)
 
 ### Community 124 - "Community 124"
-Cohesion: 0.08
-Nodes (23): animate(), init(), load_all(), load_pcd(), onWindowResize(), render(), animate(), clearAll() (+15 more)
-
-### Community 129 - "Community 129"
-Cohesion: 0.10
-Nodes (6): intersectObjectWithRay(), onPointerDown(), onPointerHover(), onPointerMove(), onPointerUp(), TransformControls
+Cohesion: 0.06
+Nodes (24): animate(), init(), load_all(), load_pcd(), onWindowResize(), render(), animate(), clearAll() (+16 more)
 
 ### Community 130 - "Community 130"
 Cohesion: 0.12
 Nodes (15): box操作, Object type configuration, SUSTechPOINTS: 3D Point Cloud Annotation Tool, UI说明, 其他功能, 右键菜单, 右键菜单, 屏幕左上区域 (+7 more)
 
 ### Community 132 - "Community 132"
-Cohesion: 0.11
-Nodes (26): addspMatrices(), full(), fullMatrix(), fullVector(), max(), maxMatrix(), maxMatrixCols(), maxMatrixMatrix() (+18 more)
+Cohesion: 0.10
+Nodes (28): addspMatrices(), full(), fullMatrix(), fullVector(), max(), maxMatrix(), maxMatrixCols(), maxMatrixMatrix() (+20 more)
+
+### Community 133 - "Community 133"
+Cohesion: 0.13
+Nodes (7): CubicBezier(), CubicBezierCurve, CubicBezierCurve3, CubicBezierP0(), CubicBezierP1(), CubicBezierP2(), CubicBezierP3()
 
 ### Community 135 - "Community 135"
 Cohesion: 0.13
@@ -654,24 +670,24 @@ Cohesion: 0.27
 Nodes (10): ann_to_kalman_state(), get_my_filter(), get_obj_ann(), interpolate(), interpolate_segment(), kalman_state_to_ann(), kalmanfilter_pred(), MAFilter (+2 more)
 
 ### Community 137 - "Community 137"
-Cohesion: 0.11
-Nodes (3): OrthographicCamera, PerspectiveCamera, SpotLightShadow
+Cohesion: 0.18
+Nodes (3): AnimationClip, getTrackTypeForValueTypeName(), parseKeyframeTrack()
 
 ### Community 138 - "Community 138"
 Cohesion: 0.26
 Nodes (14): arraysEqual(), copyArray(), setValueM2(), setValueM3(), setValueM4(), setValueV2f(), setValueV2i(), setValueV2ui() (+6 more)
 
 ### Community 139 - "Community 139"
-Cohesion: 0.06
-Nodes (10): InstancedMesh, MaterialLoader, ObjectLoader, QuadraticBezier(), QuadraticBezierCurve, QuadraticBezierCurve3, QuadraticBezierP0(), QuadraticBezierP1() (+2 more)
+Cohesion: 0.07
+Nodes (8): CatmullRom(), CubeTextureLoader, EllipseCurve, LightProbe, MaterialLoader, ObjectLoader, SplineCurve, TubeGeometry
 
 ### Community 140 - "Community 140"
 Cohesion: 0.18
 Nodes (3): AnimationClip, getTrackTypeForValueTypeName(), parseKeyframeTrack()
 
 ### Community 141 - "Community 141"
-Cohesion: 0.26
-Nodes (14): arraysEqual(), copyArray(), setValueM2(), setValueM3(), setValueM4(), setValueV2f(), setValueV2i(), setValueV2ui() (+6 more)
+Cohesion: 0.23
+Nodes (14): Bn(), Cn(), Dn(), Nn(), On(), Pn(), qe(), Qn() (+6 more)
 
 ### Community 144 - "Community 144"
 Cohesion: 0.15
@@ -682,19 +698,23 @@ Cohesion: 0.15
 Nodes (3): CubicInterpolant, DiscreteInterpolant, Interpolant
 
 ### Community 147 - "Community 147"
-Cohesion: 0.06
-Nodes (53): addspMatrices(), find(), full(), fullMatrix(), fullVector(), max(), maxMatrix(), maxMatrixCols() (+45 more)
+Cohesion: 0.04
+Nodes (76): add(), addComplexMatrices(), addComplexMatrixMatrix(), addComplexReal(), addComplexVectors(), addComplexVectorVector(), addMatrixspMatrix(), addScalarComplexMatrix() (+68 more)
 
 ### Community 148 - "Community 148"
-Cohesion: 0.08
-Nodes (36): divMatrices(), divMatrixScalar(), divScalarMatrix(), divScalarVector(), divVectors(), divVectorScalar(), entrywisediv(), entrywisemul() (+28 more)
+Cohesion: 0.38
+Nodes (10): mean(), sum(), sumMatrix(), sumMatrixCols(), sumMatrixRows(), sumspMatrix(), sumspMatrixCols(), sumspMatrixRows() (+2 more)
 
 ### Community 149 - "Community 149"
-Cohesion: 0.17
-Nodes (12): _y, av(), bc(), cv(), lv(), Ly(), My(), n() (+4 more)
+Cohesion: 0.18
+Nodes (12): _y, av(), bc(), cv(), lv(), Ly(), n(), Pc() (+4 more)
+
+### Community 151 - "Community 151"
+Cohesion: 0.24
+Nodes (12): as(), cp(), ds(), fs(), hs(), kr(), ms(), os() (+4 more)
 
 ### Community 152 - "Community 152"
-Cohesion: 0.18
+Cohesion: 0.30
 Nodes (10): dataset_root, frame_radius, frame_stats, frames_used, margin, obj_id, ref_frame, single_point_count (+2 more)
 
 ### Community 153 - "Community 153"
@@ -702,8 +722,12 @@ Cohesion: 0.20
 Nodes (9): Current Best Conclusion, Debug Session: cpu-crash [OPEN], Evidence Collected, Evidence To Collect, Falsifiable Hypotheses, Hypothesis Status, Next Step, Scope (+1 more)
 
 ### Community 154 - "Community 154"
-Cohesion: 0.22
-Nodes (3): ceilPowerOfTwo(), CubicPoly(), Skeleton
+Cohesion: 0.24
+Nodes (11): Bg(), It(), Iy(), jg(), My(), Pg(), qg(), u() (+3 more)
+
+### Community 157 - "Community 157"
+Cohesion: 0.20
+Nodes (9): Current Best Conclusion, Debug Session: cpu-crash [OPEN], Evidence Collected, Evidence To Collect, Falsifiable Hypotheses, Hypothesis Status, Next Step, Scope (+1 more)
 
 ### Community 158 - "Community 158"
 Cohesion: 0.22
@@ -718,8 +742,12 @@ Cohesion: 0.25
 Nodes (7): Current Conclusion, Evidence, Hypotheses, Hypothesis Status, [OPEN] backend-auto-pause, Plan, Symptom
 
 ### Community 162 - "Community 162"
-Cohesion: 0.25
+Cohesion: 0.33
 Nodes (7): classes, created_with, name, version, default, format, type
+
+### Community 163 - "Community 163"
+Cohesion: 0.22
+Nodes (8): Automatic yaw angle (z-axis) prediction., batch-mode box editing, Cite, Features, Get started, Main UI, Operations, SUSTechPOINTS: Point Cloud 3D Bounding Box Annotation Tool For Autonomous Driving
 
 ### Community 164 - "Community 164"
 Cohesion: 0.46
@@ -733,6 +761,10 @@ Nodes (4): box_to_2d_points(), euler_angle_to_rotate_matrix(), proj_pts3d_to_img
 Cohesion: 0.29
 Nodes (6): Evidence, Hypotheses, Interim Conclusion, [OPEN] moving-heading-no-response, Plan, Symptom
 
+### Community 169 - "Community 169"
+Cohesion: 0.25
+Nodes (7): Current Conclusion, Evidence, Hypotheses, Hypothesis Status, [OPEN] backend-auto-pause, Plan, Symptom
+
 ### Community 177 - "Community 177"
 Cohesion: 0.33
 Nodes (5): Debug Session: ui-not-opening, Hypotheses & Verification, Log Evidence, Reproduction Steps, Verification Conclusion
@@ -742,52 +774,72 @@ Cohesion: 0.40
 Nodes (4): Hypotheses, [OPEN] pose-folder-mismatch, Plan, Symptom
 
 ### Community 180 - "Community 180"
-Cohesion: 0.40
+Cohesion: 0.53
 Nodes (4): Config, Introduction, Requirements, Run
 
 ### Community 181 - "Community 181"
-Cohesion: 0.40
+Cohesion: 0.33
 Nodes (4): Build Image yourself(自行创建镜像, 较为繁琐), Docker, Install Docker(安装Docker), Use docker image of dockerhub(使用现有镜像, 不保证代码为最新)
 
 ### Community 182 - "Community 182"
-Cohesion: 0.40
+Cohesion: 0.53
 Nodes (4): Data preparation, Install, Object type configuration, Start
 
 ### Community 183 - "Community 183"
-Cohesion: 0.40
+Cohesion: 0.53
 Nodes (4): Add a new box, batch-editing mode, Main View, sub-view (projective view)
 
 ### Community 186 - "Community 186"
-Cohesion: 0.40
+Cohesion: 0.53
 Nodes (4): filename, folder, objects, path
 
 ### Community 187 - "Community 187"
 Cohesion: 0.60
 Nodes (3): init(), onWindowResize(), render()
 
+### Community 188 - "Community 188"
+Cohesion: 0.29
+Nodes (6): Evidence, Hypotheses, Interim Conclusion, [OPEN] moving-heading-no-response, Plan, Symptom
+
 ### Community 189 - "Community 189"
-Cohesion: 0.50
+Cohesion: 0.60
 Nodes (3): box操作视图, 主视图区域, 批量编辑界面
 
+### Community 199 - "Community 199"
+Cohesion: 0.33
+Nodes (4): intersectObjectWithRay(), onPointerDown(), onPointerHover(), onPointerMove()
+
+### Community 221 - "Community 221"
+Cohesion: 0.43
+Nodes (7): prod(), prodMatrix(), prodMatrixCols(), prodMatrixRows(), prodspMatrixCols(), prodspMatrixRows(), prodVector()
+
+### Community 223 - "Community 223"
+Cohesion: 0.33
+Nodes (5): Debug Session: ui-not-opening, Hypotheses & Verification, Log Evidence, Reproduction Steps, Verification Conclusion
+
+### Community 225 - "Community 225"
+Cohesion: 0.40
+Nodes (4): Hypotheses, [OPEN] pose-folder-mismatch, Plan, Symptom
+
 ## Knowledge Gaps
-- **340 isolated node(s):** `PreToolUse`, `run.sh script`, `classes`, `default`, `type` (+335 more)
+- **361 isolated node(s):** `PreToolUse`, `name`, `version`, `_changeEvent`, `_startEvent` (+356 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **104 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **121 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `lv()` connect `Community 149` to `Community 16`, `Community 101`?**
-  _High betweenness centrality (0.246) - this node is a cross-community bridge._
+- **Why does `lv()` connect `Community 149` to `Community 16`, `Community 154`, `Community 101`?**
+  _High betweenness centrality (0.239) - this node is a cross-community bridge._
 - **Why does `_y` connect `Community 149` to `Community 0`?**
-  _High betweenness centrality (0.246) - this node is a cross-community bridge._
-- **Why does `_()` connect `Community 16` to `Community 58`, `Community 101`, `Community 100`, `Community 5`, `Community 4`, `Community 74`, `Community 111`, `Community 84`, `Community 53`, `Community 149`, `Community 22`, `Community 121`, `Community 90`?**
-  _High betweenness centrality (0.157) - this node is a cross-community bridge._
-- **What connects `PreToolUse`, `run.sh script`, `box_psr: {"position": {x,y,z}, "scale": {x,y,z}, "rotation": {x,y,z}}     T_ego_` to the rest of the system?**
-  _343 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _High betweenness centrality (0.239) - this node is a cross-community bridge._
+- **Why does `_()` connect `Community 16` to `Community 26`, `Community 100`, `Community 101`, `Community 5`, `Community 154`, `Community 74`, `Community 13`, `Community 111`, `Community 84`, `Community 53`, `Community 149`, `Community 151`, `Community 22`, `Community 121`, `Community 90`?**
+  _High betweenness centrality (0.140) - this node is a cross-community bridge._
+- **What connects `PreToolUse`, `box_psr: {"position": {x,y,z}, "scale": {x,y,z}, "rotation": {x,y,z}}     T_ego_`, `基于SUSTechPOINTS原有的grow_box/calculate_box_dimension算法，     通过点云在框局部坐标系下的极值来精修框的位置` to the rest of the system?**
+  _364 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.006033029996629592 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.006220395030833855 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.014492067250769595 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.014058070941546005 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
-  _Cohesion score 0.01021454338333017 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.010355528570464819 - nodes in this community are weakly interconnected._

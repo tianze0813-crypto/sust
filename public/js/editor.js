@@ -866,6 +866,18 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
             this.deleteSelectedObjectRange(null);
             return true;
 
+        case "cm-delete-obj-all":
+            this.deleteSelectedObjectInAllFrames();
+            return true;
+
+        case "cm-rotate-obj-yaw-90-all":
+            this.rotateSelectedObjectYaw90InAllFrames();
+            return true;
+
+        case "cm-rotate-box-yaw-90-swap":
+            this.rotateSelectedBoxYaw90AndSwapSize();
+            return true;
+
         case "cm-modify-obj-type":
             {
                 if (!this.ensurePreloaded())
@@ -1236,6 +1248,147 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
         }
     };
 
+    this.deleteSelectedObjectInAllFrames = async function(){
+        if (!this.selected_box){
+            this.infoBox.show("Error", "Please select a box first.");
+            return;
+        }
+
+        if (!this.ensureBoxTrackIdExist())
+            return;
+
+        const scene = this.data.world.frameInfo.scene;
+        const meta = this.data.get_current_world_scene_meta();
+        const firstFrame = meta && meta.frames && meta.frames.length > 0 ? meta.frames[0] : this.data.world.frameInfo.frame;
+        const objId = this.selected_box.obj_track_id;
+
+        const confirmed = window.confirm(
+            `Delete object ${objId} from all frames in scene ${scene}?`
+        );
+        if (!confirmed)
+            return;
+
+        try{
+            const modifiedFrames = this.data.worldList.filter(w=>
+                w.frameInfo.scene === scene && w.annotation.modified
+            );
+            if (modifiedFrames.length > 0){
+                await saveWorldListImmediate(modifiedFrames);
+            }
+
+            const result = await this._postJson("/delete_object_range", {
+                scene: scene,
+                start_frame: firstFrame,
+                obj_id: objId,
+                count: null,
+            });
+
+            if (result.error)
+                throw new Error(result.error);
+
+            const updatedFrames = result.updated_frames || [];
+            const backup = result.backup || [];
+
+            if (backup.length > 0){
+                this.batchUndoStack.push({
+                    type: "delete",
+                    scene: scene,
+                    frames: updatedFrames,
+                    backup: backup,
+                    objId: objId,
+                });
+            }
+
+            await this.reloadAnnotationsFromDisk(scene, updatedFrames);
+
+            this.infoBox.show(
+                "Notice",
+                `Deleted object ${objId} from all frames.<br>` +
+                `Updated frames: ${updatedFrames.length}.`
+            );
+        } catch(error) {
+            console.error("delete object all frames failed", error);
+            this.infoBox.show("Error", `Delete failed: ${error.message}`);
+        }
+    };
+
+    this.rotateSelectedObjectYaw90InAllFrames = async function(){
+        if (!this.selected_box){
+            this.infoBox.show("Error", "Please select a box first.");
+            return;
+        }
+
+        if (!this.ensureBoxTrackIdExist())
+            return;
+
+        const scene = this.data.world.frameInfo.scene;
+        const objId = this.selected_box.obj_track_id;
+        const angleDelta = Math.PI / 2;
+
+        const confirmed = window.confirm(
+            `Rotate right 90 degrees and swap length/width for object ${objId} in all frames of scene ${scene}?`
+        );
+        if (!confirmed)
+            return;
+
+        try{
+            const modifiedFrames = this.data.worldList.filter(w=>
+                w.frameInfo.scene === scene && w.annotation.modified
+            );
+            if (modifiedFrames.length > 0){
+                await saveWorldListImmediate(modifiedFrames);
+            }
+
+            const result = await this._postJson("/rotate_object_yaw_all", {
+                scene: scene,
+                obj_id: objId,
+                angle_delta: -angleDelta,
+                swap_xy: true,
+            });
+
+            if (result.error)
+                throw new Error(result.error);
+
+            const updatedFrames = result.updated_frames || [];
+            const backup = result.backup || [];
+
+            if (backup.length > 0){
+                this.batchUndoStack.push({
+                    type: "rotate-yaw",
+                    scene: scene,
+                    frames: updatedFrames,
+                    backup: backup,
+                    objId: objId,
+                });
+            }
+
+            await this.reloadAnnotationsFromDisk(scene, updatedFrames);
+
+            this.infoBox.show(
+                "Notice",
+                `Rotated object ${objId} right 90 degrees and swapped length/width in all frames.<br>` +
+                `Updated frames: ${updatedFrames.length}.`
+            );
+        } catch(error) {
+            console.error("rotate object yaw all frames failed", error);
+            this.infoBox.show("Error", `Rotate yaw failed: ${error.message}`);
+        }
+    };
+
+    this.rotateSelectedBoxYaw90AndSwapSize = function(){
+        if (!this.selected_box){
+            this.infoBox.show("Error", "Please select a box first.");
+            return;
+        }
+
+        if (this.data.world && this.data.world.annotation) {
+            this.data.world.annotation.undoManager.takeSnapshot(this.data.world.annotation);
+        }
+
+        this.selected_box.rotation.z -= Math.PI / 2;
+        this.on_box_changed(this.selected_box);
+    };
+
     this._postJson = async function(url, data){
         const response = await fetch(url, {
             method: "POST",
@@ -1269,9 +1422,10 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
             this.batchUndoStack.pop();
             await this.reloadAnnotationsFromDisk(entry.scene, entry.frames);
 
+            const actionText = entry.type === "rotate-yaw" ? "yaw rotation" : "object delete";
             this.infoBox.show(
                 "Notice",
-                `Restored object ${entry.objId}.<br>` +
+                `Restored ${actionText} for object ${entry.objId}.<br>` +
                 `Restored frames: ${entry.frames.length}.`
             );
             return true;
