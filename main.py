@@ -112,6 +112,20 @@ def _rotate_obj_yaw_in_annotations(annotations, obj_id, angle_delta, swap_xy=Fal
     return annotations or [], changed
 
 
+def _upsert_obj_annotation(annotations, source_annotation):
+    annotations = list(annotations or [])
+    source_copy = copy.deepcopy(source_annotation)
+    obj_id = source_copy.get("obj_id")
+
+    for i, box in enumerate(annotations):
+        if str(box.get("obj_id")) == str(obj_id):
+            annotations[i] = source_copy
+            return annotations
+
+    annotations.append(source_copy)
+    return annotations
+
+
 class Root(object):
     @cherrypy.expose
     def index(self, scene="", frame=""):
@@ -279,6 +293,66 @@ class Root(object):
           "angle_delta": angle_delta,
           "swap_xy": swap_xy,
           "target_frames": frames,
+          "updated_frames": updated_frames,
+          "backup": backup,
+        }
+      except Exception as e:
+        cherrypy.response.status = 500
+        return {"error": str(e)}
+
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def copy_object_to_next_frames(self):
+      try:
+        rawbody = cherrypy.request.body.readline().decode('UTF-8')
+        data = json.loads(rawbody)
+
+        scene = data["scene"]
+        start_frame = _normalize_frame(data["start_frame"])
+        source_annotation = data["annotation"]
+        obj_id = source_annotation.get("obj_id")
+        count = int(data["count"])
+
+        if count <= 0:
+          return {"error": "count must be a positive integer"}
+
+        scene_meta = scene_reader.get_one_scene(scene)
+        frames = list(scene_meta.get("frames", []))
+
+        if start_frame not in frames:
+          return {"error": "frame {} not found in scene {}".format(start_frame, scene)}
+
+        start_idx = frames.index(start_frame)
+        target_frames = frames[start_idx + 1:start_idx + 1 + count]
+
+        updated_frames = []
+        backup = []
+
+        for frame in target_frames:
+          ann = scene_reader.read_annotations(scene, frame)
+          original_ann = copy.deepcopy(ann)
+          new_ann = _upsert_obj_annotation(ann, source_annotation)
+
+          backup.append({
+            "scene": scene,
+            "frame": frame,
+            "annotation": original_ann,
+          })
+
+          label_dir = os.path.join("./data", scene, "label")
+          os.makedirs(label_dir, exist_ok=True)
+          with open(os.path.join(label_dir, frame + ".json"), "w") as f:
+            json.dump(new_ann, f, indent=2, sort_keys=True)
+
+          updated_frames.append(frame)
+
+        return {
+          "scene": scene,
+          "start_frame": start_frame,
+          "obj_id": str(obj_id),
+          "requested_count": count,
+          "target_frames": target_frames,
           "updated_frames": updated_frames,
           "backup": backup,
         }

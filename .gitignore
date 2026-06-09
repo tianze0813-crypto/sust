@@ -1,10 +1,52 @@
-data
-data/*
-data.bk/*
-.vscode
-temp
-*.pyc
-**.h5
-image_temp
-tools/pypcd
+# Python caches / build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+build/
+dist/
+*.egg-info/
+
+# Python / model environments
+.venv/
+venv/
+env/
+ENV/
+*.h5
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Runtime logs and temporary files
+*.log
+.labelCloud.log
+run.log
+temp/
 temp*/
+image_temp/
+
+# Local agent/debug state
+.agents/
+.codex/
+.dbg/
+
+# Local datasets. Keep only already-tracked sample data in git.
+data/*
+!data/example/
+!data/example/**
+data.bk/
+data.bk/*
+
+# Generated outputs
+output/
+
+# Generated code graph/cache. Regenerate locally with graphify when needed.
+graphify-out/
+
+# Local vendored/generated tool cache
+tools/pypcd/

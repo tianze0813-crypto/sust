@@ -1,5 +1,5 @@
 import{Config} from "./config.js?v=17"
-import{Editor} from "./editor.js?v=25"
+import{Editor} from "./editor.js?v=26"
 import {Data} from './data.js?v=17'
 import {SpatialPropagation} from './spatial_propagate.js'
 

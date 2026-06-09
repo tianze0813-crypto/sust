@@ -878,6 +878,10 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
             this.rotateSelectedBoxYaw90AndSwapSize();
             return true;
 
+        case "cm-copy-obj-next-frames":
+            this.copySelectedObjectToNextFrames();
+            return true;
+
         case "cm-modify-obj-type":
             {
                 if (!this.ensurePreloaded())
@@ -1389,6 +1393,80 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
         this.on_box_changed(this.selected_box);
     };
 
+    this.copySelectedObjectToNextFrames = async function(){
+        if (!this.selected_box){
+            this.infoBox.show("Error", "Please select a box first.");
+            return;
+        }
+
+        if (!this.ensureBoxTrackIdExist())
+            return;
+
+        const raw = window.prompt("Copy this object to how many next frames?", "1");
+        if (raw === null)
+            return;
+
+        const count = parseInt(raw, 10);
+        if (!Number.isInteger(count) || count <= 0){
+            this.infoBox.show("Error", "Frame count must be a positive integer.");
+            return;
+        }
+
+        const scene = this.data.world.frameInfo.scene;
+        const startFrame = this.data.world.frameInfo.frame;
+        const sourceAnn = this.data.world.annotation.boxToAnn(this.selected_box);
+        const objId = sourceAnn.obj_id;
+
+        const confirmed = window.confirm(
+            `Copy object ${objId} from frame ${startFrame} to next ${count} frame(s)? Existing same-id boxes will be overwritten.`
+        );
+        if (!confirmed)
+            return;
+
+        try{
+            const modifiedFrames = this.data.worldList.filter(w=>
+                w.frameInfo.scene === scene && w.annotation.modified
+            );
+            if (modifiedFrames.length > 0){
+                await saveWorldListImmediate(modifiedFrames);
+            }
+
+            const result = await this._postJson("/copy_object_to_next_frames", {
+                scene: scene,
+                start_frame: startFrame,
+                count: count,
+                annotation: sourceAnn,
+            });
+
+            if (result.error)
+                throw new Error(result.error);
+
+            const updatedFrames = result.updated_frames || [];
+            const backup = result.backup || [];
+
+            if (backup.length > 0){
+                this.batchUndoStack.push({
+                    type: "copy-static",
+                    scene: scene,
+                    frames: updatedFrames,
+                    backup: backup,
+                    objId: objId,
+                });
+            }
+
+            await this.reloadAnnotationsFromDisk(scene, updatedFrames);
+
+            this.infoBox.show(
+                "Notice",
+                `Copied object ${objId} to next frames.<br>` +
+                `Updated frames: ${updatedFrames.length}.`
+            );
+        } catch(error) {
+            console.error("copy object to next frames failed", error);
+            this.infoBox.show("Error", `Copy failed: ${error.message}`);
+        }
+    };
+
     this._postJson = async function(url, data){
         const response = await fetch(url, {
             method: "POST",
@@ -1422,7 +1500,10 @@ function Editor(editorUi, wrapperUi, editorCfg, data, name="editor"){
             this.batchUndoStack.pop();
             await this.reloadAnnotationsFromDisk(entry.scene, entry.frames);
 
-            const actionText = entry.type === "rotate-yaw" ? "yaw rotation" : "object delete";
+            const actionText = {
+                "rotate-yaw": "yaw rotation",
+                "copy-static": "static-object copy",
+            }[entry.type] || "object delete";
             this.infoBox.show(
                 "Notice",
                 `Restored ${actionText} for object ${entry.objId}.<br>` +
