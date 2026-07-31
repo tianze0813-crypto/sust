@@ -1,0 +1,453 @@
+[
+  {
+    "obj_id": 1,
+    "obj_track_id": 1,
+    "obj_type": "person",
+    "psr": {
+      "position": {
+        "x": -2.364016690281193,
+        "y": 0.09695965282878123,
+        "z": -0.32745821170508865
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 2.048124119329774
+      },
+      "scale": {
+        "x": 0.5485110195862921,
+        "y": 0.3286879510618531,
+        "z": 1.6907729543745518
+      }
+    },
+    "source": {
+      "merged_from": 3,
+      "sources": [
+        {
+          "image": "/home/moga/桌面/预标测效/anno_shangban_my_record_20260707_081833_clip2/camera/cam_right/1783383588638589000.jpg",
+          "camera": "cam_right",
+          "bbox_2d": [
+            653.1972045898438,
+            747.431884765625,
+            796.0767211914062,
+            1147.1368408203125
+          ],
+          "cluster_id": 0,
+          "clusters_from_bbox": 1,
+          "points": 1107,
+          "volume": 0.30278876246979064,
+          "yaw": 1.9428249917035516
+        },
+        {
+          "image": "/home/moga/桌面/预标测效/anno_shangban_my_record_20260707_081833_clip2/camera/cam_front/1783383588638589000.jpg",
+          "camera": "cam_front",
+          "bbox_2d": [
+            1644.4813232421875,
+            635.1337280273438,
+            1905.91748046875,
+            1220.0423583984375
+          ],
+          "cluster_id": 0,
+          "clusters_from_bbox": 1,
+          "points": 121,
+          "volume": 0.12369863942404005,
+          "yaw": -3.097983706578971
+        },
+        {
+          "image": "/home/moga/桌面/预标测效/anno_shangban_my_record_20260707_081833_clip2/camera/cam_rear/1783383588638589000.jpg",
+          "camera": "cam_rear",
+          "bbox_2d": [
+            7.222630977630615,
+            639.7308349609375,
+            233.08221435546875,
+            1261.0216064453125
+          ],
+          "cluster_id": 0,
+          "clusters_from_bbox": 1,
+          "points": 8,
+          "volume": 0.24279219258733445,
+          "yaw": 3.0082977999974956
+        }
+      ],
+      "normalized_track_box": {
+        "base_side": 0.7,
+        "base_diagonal": 0.9899494936611666,
+        "track_max_height": 1.6907729543745518
+      },
+      "fit_track_xy_from_max_points": {
+        "method": "current_box_points_percentile_xy",
+        "selected_frame_index": 30,
+        "selected_lidar": "/home/moga/桌面/预标测效/anno_shangban_my_record_20260707_081833_clip2/lidar/lidar_front/1783383587418616056.pcd",
+        "selected_points": 1137,
+        "min_points": 6,
+        "old_scale": {
+          "x": 0.7,
+          "y": 0.7
+        },
+        "scale": {
+          "x": 0.5485110195862921,
+          "y": 0.3286879510618531
+        },
+        "changed": true
+      },
+      "fit_local_ground": {
+        "ground_z": -1.1928446888923645,
+        "target_bottom_z": -1.1728446888923645,
+        "old_bottom_z": -1.1389475539820957,
+        "adjustment": -0.0338971349102688,
+        "points": 1291,
+        "cells": 46,
+        "window_side": 1.3,
+        "cell_size": 0.2,
+        "ground_offset": 0.02
+      }
+    }
+  },
+  {
+    "obj_id": 9,
+    "obj_track_id": 9,
+    "obj_type": "person",
+    "psr": {
+      "position": {
+        "x": 3.0679804969817277,
+        "y": -0.5175405852635249,
+        "z": -0.33386315137147904
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 2.4953457565394377
+      },
+      "scale": {
+        "x": 0.45914455194030146,
+        "y": 0.29841056781049546,
+        "z": 1.6971773475408554
+      }
+    },
+    "source": {
+      "merged_from": 2,
+      "sources": [
+        {
+          "image": "/home/moga/桌面/预标测效/anno_shangban_my_record_20260707_081833_clip2/camera/cam_front/1783383588638589000.jpg",
+          "camera": "cam_front",
+          "bbox_2d": [
+            84.99556732177734,
+            641.221923828125,
+            255.7244110107422,
+            1061.8424072265625
+          ],
+          "cluster_id": 0,
+          "clusters_from_bbox": 1,
+          "points": 732,
+          "volume": 0.406887391259591,
+          "yaw": 3.1200593851611846
+        },
+        {
+          "image": "/home/moga/桌面/预标测效/anno_shangban_my_record_20260707_081833_clip2/camera/cam_left/1783383588638589000.jpg",
+          "camera": "cam_left",
+          "bbox_2d": [
+            1237.1151123046875,
+            759.883544921875,
+            1361.537841796875,
+            1079.861328125
+          ],
+          "cluster_id": 0,
+          "clusters_from_bbox": 1,
+          "points": 704,
+          "volume": 0.34280035129542624,
+          "yaw": 1.8416471140193595
+        }
+      ],
+      "normalized_track_box": {
+        "base_side": 0.7,
+        "base_diagonal": 0.9899494936611666,
+        "track_max_height": 1.6971773475408554
+      },
+      "fit_track_xy_from_max_points": {
+        "method": "current_box_points_percentile_xy",
+        "selected_frame_index": 38,
+        "selected_lidar": "/home/moga/桌面/预标测效/anno_shangban_my_record_20260707_081833_clip2/lidar/lidar_front/1783383590618042946.pcd",
+        "selected_points": 11064,
+        "min_points": 6,
+        "old_scale": {
+          "x": 0.7,
+          "y": 0.7
+        },
+        "scale": {
+          "x": 0.45914455194030146,
+          "y": 0.29841056781049546
+        },
+        "changed": true
+      },
+      "fit_local_ground": {
+        "ground_z": -1.2024518251419067,
+        "target_bottom_z": -1.1824518251419067,
+        "old_bottom_z": -1.1764902040611402,
+        "adjustment": -0.005961621080766477,
+        "points": 689,
+        "cells": 48,
+        "window_side": 1.3,
+        "cell_size": 0.2,
+        "ground_offset": 0.02
+      },
+      "fit_moving_direction_by_id": {
+        "min_moving_distance": 0.3,
+        "target_world_yaw": -0.40873689712644795,
+        "method": "adjacent_boxes",
+        "changed": false
+      }
+    }
+  },
+  {
+    "obj_id": 3,
+    "obj_track_id": 3,
+    "obj_type": "person",
+    "psr": {
+      "position": {
+        "x": -2.297443162899342,
+        "y": 3.5479691393543535,
+        "z": -0.4209010887145996
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": -2.945285709073983
+      },
+      "scale": {
+        "x": 0.7005549379498608,
+        "y": 0.6034861502767861,
+        "z": 1.65
+      }
+    },
+    "source": {
+      "merged_from": 2,
+      "sources": [
+        {
+          "image": "/home/moga/桌面/预标测效/anno_shangban_my_record_20260707_081833_clip2/camera/cam_rear/1783383588638589000.jpg",
+          "camera": "cam_rear",
+          "bbox_2d": [
+            581.5609741210938,
+            781.4481201171875,
+            689.5274047851562,
+            941.509033203125
+          ],
+          "cluster_id": 0,
+          "clusters_from_bbox": 1,
+          "points": 257,
+          "volume": 0.6475116856571177,
+          "yaw": -2.819694153484373
+        },
+        {
+          "image": "/home/moga/桌面/预标测效/anno_shangban_my_record_20260707_081833_clip2/camera/cam_right/1783383588638589000.jpg",
+          "camera": "cam_right",
+          "bbox_2d": [
+            1222.5595703125,
+            824.3905029296875,
+            1294.104248046875,
+            912.9647216796875
+          ],
+          "cluster_id": 0,
+          "clusters_from_bbox": 1,
+          "points": 69,
+          "volume": 0.16934738405059105,
+          "yaw": 2.852508557524544
+        }
+      ],
+      "normalized_track_box": {
+        "base_side": 0.7,
+        "base_diagonal": 0.9899494936611666,
+        "track_max_height": 1.65
+      },
+      "fit_track_xy_from_max_points": {
+        "method": "current_box_points_percentile_xy",
+        "selected_frame_index": 4,
+        "selected_lidar": "/home/moga/桌面/预标测效/anno_shangban_my_record_20260707_081833_clip2/lidar/lidar_front/1783383578118103027.pcd",
+        "selected_points": 255,
+        "min_points": 6,
+        "old_scale": {
+          "x": 0.7,
+          "y": 0.7
+        },
+        "scale": {
+          "x": 0.7005549379498608,
+          "y": 0.6034861502767861
+        },
+        "changed": true
+      },
+      "fit_local_ground": {
+        "ground_z": -1.2659010887145996,
+        "target_bottom_z": -1.2459010887145996,
+        "old_bottom_z": -1.074539565198992,
+        "adjustment": -0.17136152351560763,
+        "points": 461,
+        "cells": 40,
+        "window_side": 1.3,
+        "cell_size": 0.2,
+        "ground_offset": 0.02
+      }
+    }
+  },
+  {
+    "obj_id": 5,
+    "obj_track_id": 5,
+    "obj_type": "person",
+    "psr": {
+      "position": {
+        "x": -3.762092329243129,
+        "y": 3.6522476740881533,
+        "z": -0.3986989545822144
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 2.0227739849811006
+      },
+      "scale": {
+        "x": 0.47540095684637157,
+        "y": 0.5116735565367001,
+        "z": 1.65
+      }
+    },
+    "source": {
+      "merged_from": 2,
+      "sources": [
+        {
+          "image": "/home/moga/桌面/预标测效/anno_shangban_my_record_20260707_081833_clip2/camera/cam_right/1783383588638589000.jpg",
+          "camera": "cam_right",
+          "bbox_2d": [
+            1126.6502685546875,
+            726.1639404296875,
+            1174.790771484375,
+            906.0826416015625
+          ],
+          "cluster_id": 0,
+          "clusters_from_bbox": 1,
+          "points": 140,
+          "volume": 0.37491878204770646,
+          "yaw": 1.864333314869221
+        },
+        {
+          "image": "/home/moga/桌面/预标测效/anno_shangban_my_record_20260707_081833_clip2/camera/cam_rear/1783383588638589000.jpg",
+          "camera": "cam_rear",
+          "bbox_2d": [
+            474.3443908691406,
+            683.0848388671875,
+            525.804931640625,
+            871.4002075195312
+          ],
+          "cluster_id": 0,
+          "clusters_from_bbox": 1,
+          "points": 134,
+          "volume": 0.35904125762836514,
+          "yaw": 2.1883731349433613
+        }
+      ],
+      "normalized_track_box": {
+        "base_side": 0.7,
+        "base_diagonal": 0.9899494936611666,
+        "track_max_height": 1.65
+      },
+      "fit_track_xy_from_max_points": {
+        "method": "current_box_points_percentile_xy",
+        "selected_frame_index": 31,
+        "selected_lidar": "/home/moga/桌面/预标测效/anno_shangban_my_record_20260707_081833_clip2/lidar/lidar_front/1783383587818495035.pcd",
+        "selected_points": 173,
+        "min_points": 6,
+        "old_scale": {
+          "x": 0.7,
+          "y": 0.7
+        },
+        "scale": {
+          "x": 0.47540095684637157,
+          "y": 0.5116735565367001
+        },
+        "changed": true
+      },
+      "fit_local_ground": {
+        "ground_z": -1.2436989545822144,
+        "target_bottom_z": -1.2236989545822143,
+        "old_bottom_z": -1.0243409300695452,
+        "adjustment": -0.19935802451266915,
+        "points": 229,
+        "cells": 33,
+        "window_side": 1.3,
+        "cell_size": 0.2,
+        "ground_offset": 0.02
+      }
+    }
+  },
+  {
+    "obj_id": 7,
+    "obj_track_id": 7,
+    "obj_type": "person",
+    "psr": {
+      "position": {
+        "x": -5.534005005328371,
+        "y": 4.155287202019464,
+        "z": -0.3689436006546021
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 2.32556237597716
+      },
+      "scale": {
+        "x": 0.748947807558692,
+        "y": 0.4439315196130378,
+        "z": 1.65
+      }
+    },
+    "source": {
+      "merged_from": 1,
+      "sources": [
+        {
+          "image": "/home/moga/桌面/预标测效/anno_shangban_my_record_20260707_081833_clip2/camera/cam_right/1783383588638589000.jpg",
+          "camera": "cam_right",
+          "bbox_2d": [
+            1056.4884033203125,
+            759.9669799804688,
+            1105.6710205078125,
+            890.6460571289062
+          ],
+          "cluster_id": 0,
+          "clusters_from_bbox": 1,
+          "points": 26,
+          "volume": 0.26590232777233025,
+          "yaw": 2.32556237597716
+        }
+      ],
+      "normalized_track_box": {
+        "base_side": 0.7,
+        "base_diagonal": 0.9899494936611666,
+        "track_max_height": 1.65
+      },
+      "fit_track_xy_from_max_points": {
+        "method": "current_box_points_percentile_xy",
+        "selected_frame_index": 41,
+        "selected_lidar": "/home/moga/桌面/预标测效/anno_shangban_my_record_20260707_081833_clip2/lidar/lidar_front/1783383591717125893.pcd",
+        "selected_points": 128,
+        "min_points": 6,
+        "old_scale": {
+          "x": 0.7,
+          "y": 0.7
+        },
+        "scale": {
+          "x": 0.748947807558692,
+          "y": 0.4439315196130378
+        },
+        "changed": true
+      },
+      "fit_local_ground": {
+        "ground_z": -1.213943600654602,
+        "target_bottom_z": -1.193943600654602,
+        "old_bottom_z": -1.1118695914745331,
+        "adjustment": -0.08207400918006891,
+        "points": 55,
+        "cells": 17,
+        "window_side": 1.3,
+        "cell_size": 0.2,
+        "ground_offset": 0.02
+      }
+    }
+  }
+]
