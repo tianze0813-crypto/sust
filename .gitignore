@@ -5,3 +5,8 @@ __pycache__/
 *.pyd
 
 # Model files (large binary)
+
+# Data directory — keep dir, ignore contents
+data/*
+!data/.gitkeep
+
