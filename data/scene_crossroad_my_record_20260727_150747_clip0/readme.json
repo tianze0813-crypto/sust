@@ -1,0 +1,127 @@
+{
+    "package_name": "scene_crossroad_my_record_20260727_150747_clip0",
+    "split": "train",
+    "source_topics": [
+        "_camera_front_image_raw_compressed",
+        "_camera_rear_image_raw_compressed",
+        "_camera_left_image_raw_compressed",
+        "_camera_right_image_raw_compressed",
+        "_camera_x8d_image_raw_compressed",
+        "_lidar_points_front",
+        "_lidar_points_rear",
+        "_lidar_points_top"
+    ],
+    "keyframe_count": 80,
+    "tasks": {
+        "supported_tasks": [],
+        "example": [
+            "3DDET",
+            "OCC",
+            "3DSEG",
+            "2DDET",
+            "2DSEG",
+            "VLN"
+        ]
+    },
+    "sensor_mapping": {
+        "_camera_front_image_raw_compressed": "image/cam_front",
+        "_camera_rear_image_raw_compressed": "image/cam_rear",
+        "_camera_left_image_raw_compressed": "image/cam_left",
+        "_camera_right_image_raw_compressed": "image/cam_right",
+        "_camera_x8d_image_raw_compressed": "image/cam_x8d",
+        "_lidar_points_front": "lidar/lidar_front",
+        "_lidar_points_rear": "lidar/lidar_rear",
+        "_lidar_points_top": "lidar/lidar_top"
+    },
+    "sensor_meta": {
+        "lidar": "",
+        "camera": "",
+        "pose": "",
+        "label": {
+            "det": {
+                "frame": "base_link"
+            }
+        }
+    },
+    "pose_data": {
+        "file": "transforms/pose_data.txt",
+        "format": "timestamp, pos_x, pos_y, pos_z, quat_x, quat_y, quat_z, quat_w",
+        "example": "1775813508031673908, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0"
+    },
+    "lidar_pose": {
+        "file": "transforms/lidar_pose.json",
+        "format": "Step3 pose format: frame_id, timestamp, pose{x,y,z,roll,pitch,yaw}",
+        "frame": "base_link"
+    },
+    "scene_info": {
+        "scene_category": "outdoor",
+        "scene_subcategory": "urban_street",
+        "weather": "sunny",
+        "timeofday": "day",
+        "capture_platform": "police",
+        "crowd_density": "low"
+    },
+    "creator": "moga",
+    "created_time": "2026-07-30 13:21:16",
+    "git_info": {
+        "commit": "edbb7c02da68034cdd7f49449bd3992169e25e13",
+        "branch": "main",
+        "commit_time": "2026-07-09 13:41:21 +0800",
+        "describe": "v0.2.0-2-gedbb7c0-dirty"
+    },
+    "point_cloud": {
+        "has_intensity": true,
+        "format": "xyzi",
+        "undistortion": false
+    },
+    "notes": "- Keyframes extracted from raw data; pose unchanged\n- Camera: 0-front, 1-rear, 2-right, 3-left\n- LiDAR point cloud: undistortion not applied\n- LiDAR point cloud: intensity (ring) saved",
+    "_scene_info_options": {
+        "scene_category": [
+            "indoor",
+            "outdoor"
+        ],
+        "scene_subcategory": {
+            "indoor": [
+                "office",
+                "warehouse",
+                "hospital",
+                "home",
+                "mall",
+                "corridor"
+            ],
+            "outdoor": [
+                "urban_street",
+                "residential",
+                "highway",
+                "park",
+                "campus",
+                "parking_lot"
+            ]
+        },
+        "weather": [
+            "sunny",
+            "cloudy",
+            "rainy",
+            "snowy",
+            "foggy",
+            "overcast",
+            "none"
+        ],
+        "timeofday": [
+            "day",
+            "dawn",
+            "dusk",
+            "night"
+        ],
+        "capture_platform": [
+            "gen2",
+            "police"
+        ],
+        "crowd_density": [
+            "none",
+            "low",
+            "medium",
+            "high"
+        ]
+    }
+}
