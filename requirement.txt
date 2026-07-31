@@ -1,0 +1,7 @@
+tensorflow>=2.1
+jinja2
+cherrypy
+filterpy
+cheroot != 8.4.4
+numpy
+opencv-python
