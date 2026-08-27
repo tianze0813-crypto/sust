@@ -35,6 +35,9 @@ from algos import spatial_config
 # sys.path.append(os.path.join(BASE_DIR, './tools'))
 # import tools.dataset_preprocess.crop_scene as crop_scene
 
+# Frame that fused point clouds, box labels and camera extrinsics share.
+FUSED_LIDAR_FRAME = "base_link"
+
 def _normalize_frame(frame):
     try:
         return "{:04d}".format(int(frame))
@@ -163,12 +166,12 @@ def _build_fused_lidar_bin(scene, frame):
     primary = fusion.get("primary") or scene_meta.get("lidar_primary") or "lidar_top"
     sensors = fusion.get("sensors") or scene_meta.get("lidar_sensors") or [primary]
     transforms = calib["tf2base_link"]
-    if primary not in transforms:
-        raise ValueError("primary lidar {} not found in calib".format(primary))
 
     cache_dir = os.path.join("temp", "fused_lidar", scene)
     os.makedirs(cache_dir, exist_ok=True)
-    cache_path = os.path.join(cache_dir, "{}.bin".format(_safe_cache_name(frame)))
+    # Frame tag in the cache name keeps base_link output separate from any
+    # lidar_top-frame cache left over from before the frame switch.
+    cache_path = os.path.join(cache_dir, "{}_{}.bin".format(_safe_cache_name(frame), FUSED_LIDAR_FRAME))
 
     source_paths = []
     for sensor in sensors:
@@ -187,12 +190,12 @@ def _build_fused_lidar_bin(scene, frame):
         with open(cache_path, "rb") as f:
             return f.read()
 
-    t_base_to_primary = _mat4_inverse_rigid(transforms[primary])
     fused = bytearray()
 
     for sensor, source_path in source_paths:
-        t_sensor_to_primary = _mat4_mul(t_base_to_primary, transforms[sensor])
-        _append_transformed_bin_points(fused, source_path, t_sensor_to_primary)
+        # Points, boxes and camera extrinsics all live in base_link, so each
+        # sensor goes straight to base_link with no primary-lidar detour.
+        _append_transformed_bin_points(fused, source_path, transforms[sensor])
 
     with open(cache_path, "wb") as f:
         f.write(fused)

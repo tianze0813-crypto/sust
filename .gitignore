@@ -10,3 +10,8 @@ __pycache__/
 data/*
 !data/.gitkeep
 
+# Generated fusion caches (large binary)
+temp/
+
+# Old pre-annotation packages (large, not part of the source repo)
+预标注结果_20260803/

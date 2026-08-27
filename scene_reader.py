@@ -194,20 +194,11 @@ def _mat4_inverse_rigid(m):
     return inv
 
 
-def _build_camera_calib_from_transform(transform_calib, camera_names, primary_lidar):
+def _build_camera_calib_from_transform(transform_calib, camera_names):
     if not transform_calib:
         return {}
 
     transforms = transform_calib.get("tf2base_link", {})
-    if primary_lidar not in transforms:
-        lidar_names = sorted([name for name in transforms if name.startswith("lidar_")])
-        primary_lidar = PREFERRED_LIDAR_PRIMARY if PREFERRED_LIDAR_PRIMARY in lidar_names else None
-        if primary_lidar is None and lidar_names:
-            primary_lidar = lidar_names[0]
-    if not primary_lidar or primary_lidar not in transforms:
-        return {}
-
-    lidar_to_base = transforms[primary_lidar]
     camera_calib = {}
     for camera in camera_names or []:
         cam_intrinsic = transform_calib.get(camera, {})
@@ -215,18 +206,18 @@ def _build_camera_calib_from_transform(transform_calib, camera_names, primary_li
         if not cam_to_base or "K" not in cam_intrinsic:
             continue
 
-        # UI point and box coordinates are in the primary lidar frame.
-        lidar_to_cam = _mat4_mul(_mat4_inverse_rigid(cam_to_base), lidar_to_base)
+        # UI point and box coordinates are in base_link.
+        base_to_cam = _mat4_inverse_rigid(cam_to_base)
         k_matrix = cam_intrinsic.get("K")
         camera_calib[camera] = {
-            "extrinsic": _flatten_matrix(lidar_to_cam),
+            "extrinsic": _flatten_matrix(base_to_cam),
             "intrinsic": _flatten_matrix(k_matrix),
             "model_type": cam_intrinsic.get("model_type", "PINHOLE"),
             "distortion": [float(x) for x in cam_intrinsic.get("D", [])],
             "D": [float(x) for x in cam_intrinsic.get("D", [])],
             "imgw": int(cam_intrinsic.get("imgw", 0) or 0),
             "imgh": int(cam_intrinsic.get("imgh", 0) or 0),
-            "source_lidar": primary_lidar,
+            "source_frame": "base_link",
         }
 
     return camera_calib
@@ -389,11 +380,7 @@ def get_one_scene(s):
     transform_calib_file = _find_transform_calib_file(scene_dir)
     transform_calib = _load_json_if_exists(transform_calib_file) if transform_calib_file else None
     if transform_calib:
-        transform_camera_calib = _build_camera_calib_from_transform(
-            transform_calib,
-            camera,
-            lidar_layout.get("lidar_primary") or PREFERRED_LIDAR_PRIMARY,
-        )
+        transform_camera_calib = _build_camera_calib_from_transform(transform_calib, camera)
         for name, cal in transform_camera_calib.items():
             calib_camera.setdefault(name, cal)
 

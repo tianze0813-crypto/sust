@@ -20,7 +20,9 @@ class Config{
     theme = "dark";
 
     enableFilterPoints = false;
-    filterPointsZ = 2.0;
+    // Points now live in base_link (ground at z≈0, lidar_top was at z=-1.8).
+    // 3.8 keeps the previous physical cutoff "2 m above the radar".
+    filterPointsZ = 3.8;
 
     batchModeInstNumber = 20;
     batchModeSubviewSize = {width: 130, height: 450};

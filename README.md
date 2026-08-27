@@ -42,6 +42,16 @@ semi-auto-annotation
 
 [Shortcuts(中文)](./doc/shortcuts_cn.md)
 
+## Coordinate frames
+
+- Single-lidar scenes: point clouds keep the raw sensor frame (e.g. `lidar_top`); 3D boxes and camera
+  extrinsics use the same frame.
+- Multi-lidar fusion scenes (`lidar_fusion.enabled`): `lidar_front`, `lidar_rear` and `lidar_top` are fused
+  into the **`base_link`** frame. Fused point clouds, 3D box labels and camera extrinsics all use `base_link`.
+- Fused cache files are stored as `temp/fused_lidar/<scene>/<frame>_base_link.bin`; the `base_link` suffix marks
+  the cache as a `base_link`-frame fusion result.
+- Sensor-to-`base_link` transforms come from `transforms/calib.json` (`tf2base_link`).
+
 ## Cite
 
 If you find this work useful in your research, please consider cite:

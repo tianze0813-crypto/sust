@@ -199,6 +199,15 @@ box被选择后, 左边的３个子窗口都可以对box进行调整．鼠标移
   
 
 
+## 坐标系说明
+
+- 单雷达场景：点云保持原始雷达坐标系（如 `lidar_top`），3D 框与相机外参也使用该雷达坐标系。
+- 多点云融合场景（`lidar_fusion.enabled`）：`lidar_front` / `lidar_rear` / `lidar_top` 三路点云统一融合到
+  **`base_link`** 坐标系；融合点云、3D 框标注、相机外参均以 `base_link` 为基准。
+- 融合缓存在 `temp/fused_lidar/<scene>/<frame>_base_link.bin`，文件名中的 `base_link` 标记表示该缓存为
+  base_link 坐标系下的融合结果。
+- 各传感器到 `base_link` 的变换取自场景 `transforms/calib.json` 中的 `tf2base_link`。
+
 ## Object type configuration
 
 如果需要修改模型的目标类型/大小/颜色,可以修改 [obj_cfg.js](src/public/js/../../../public/js/obj_cfg.js)文件.
