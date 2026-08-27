@@ -1,0 +1,36 @@
+{
+    "classes": [
+        {
+            "name": "unassigned",
+            "id": 0,
+            "color": "#9da2ab"
+        },
+        {
+            "name": "cart",
+            "id": 1,
+            "color": "#ffbf35"
+        },
+        {
+            "name": "box",
+            "id": 2,
+            "color": "#f156ff"
+        },
+        {
+            "name": "Pedestrian",
+            "id": 3,
+            "color": "#00ff00"
+        },
+        {
+            "name": "person",
+            "id": 4,
+            "color": "#00ff00"
+        }
+    ],
+    "default": 0,
+    "type": "object_detection",
+    "format": "centroid_abs",
+    "created_with": {
+        "name": "labelCloud",
+        "version": "1.0.1"
+    }
+}
