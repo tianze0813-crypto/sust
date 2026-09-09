@@ -1,0 +1,17 @@
+.git
+.gitignore
+.agents
+.codex
+graphify-out
+__pycache__
+*.py[cod]
+*.log
+.pytest_cache
+.mypy_cache
+.idea
+.vscode
+data/*
+!data/.gitkeep
+temp
+Docker
+预标注结果_*
