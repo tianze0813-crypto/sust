@@ -240,6 +240,12 @@ def _upsert_obj_annotation(annotations, source_annotation):
 
 class Root(object):
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def health(self):
+      """Lightweight liveness endpoint for containers and orchestrators."""
+      return {"status": "ok"}
+
+    @cherrypy.expose
     def index(self, scene="", frame=""):
       tmpl = env.get_template('index.html')
       return tmpl.render()

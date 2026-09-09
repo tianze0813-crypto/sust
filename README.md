@@ -31,7 +31,7 @@ semi-auto-annotation
 
 ## Get started
 
-[Docker](./doc/docker.md)
+[Docker](./doc/docker.md) (`docker compose up -d --build`)
 
 [Install from source](./doc/install_from_source.md)
 

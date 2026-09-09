@@ -1,0 +1,15 @@
+services:
+  sustechpoints:
+    build:
+      context: .
+    image: sustechpoints:local
+    container_name: sustechpoints
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./data:/app/data
+    environment:
+      CUDA_VISIBLE_DEVICES: "-1"
+      TF_USE_LEGACY_KERAS: "0"
+      TF_CPP_MIN_LOG_LEVEL: "2"
