@@ -57,6 +57,15 @@ async function start(){
   {
     mainEditor.load_world(scene, frame);
   }
+  else if (scene)
+  {
+    // 只给了 scene（例如切换数据目录后）时，自动打开该 scene 的第一帧
+    let meta = await mainEditor.data.readSceneMetaData(scene);
+    if (meta && meta.frames && meta.frames.length > 0)
+    {
+      mainEditor.load_world(scene, meta.frames[0]);
+    }
+  }
 }
 
 

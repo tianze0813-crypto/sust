@@ -6,6 +6,9 @@ import os
 import json
 import copy
 import struct
+import atexit
+import mimetypes
+import shutil
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('./'))
 
@@ -37,6 +40,12 @@ from algos import spatial_config
 
 # Frame that fused point clouds, box labels and camera extrinsics share.
 FUSED_LIDAR_FRAME = "base_link"
+
+# 仓库根目录 & 临时缓存目录（temp 固定放在仓库里，而不是相对启动目录，
+# 这样不同启动方式生成的融合缓存能被退出清理逻辑统一清掉）。
+REPO_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMP_DIR = os.path.join(REPO_DIR, "temp")
+
 
 def _normalize_frame(frame):
     try:
@@ -167,7 +176,7 @@ def _build_fused_lidar_bin(scene, frame):
     sensors = fusion.get("sensors") or scene_meta.get("lidar_sensors") or [primary]
     transforms = calib["tf2base_link"]
 
-    cache_dir = os.path.join("temp", "fused_lidar", scene)
+    cache_dir = os.path.join(TEMP_DIR, "fused_lidar", scene)
     os.makedirs(cache_dir, exist_ok=True)
     # Frame tag in the cache name keeps base_link output separate from any
     # lidar_top-frame cache left over from before the frame switch.
@@ -186,13 +195,23 @@ def _build_fused_lidar_bin(scene, frame):
     if calib_rel:
         mtime_sources.append(os.path.join(scene_reader.get_scene_dir(scene), calib_rel))
     latest_source_mtime = max(os.path.getmtime(path) for path in mtime_sources if os.path.exists(path))
-    if os.path.isfile(cache_path) and os.path.getmtime(cache_path) >= latest_source_mtime:
+    if (
+        os.path.isfile(cache_path)
+        and os.path.getsize(cache_path) > 0
+        and os.path.getmtime(cache_path) >= latest_source_mtime
+    ):
         with open(cache_path, "rb") as f:
             return f.read()
 
     fused = bytearray()
 
     for sensor, source_path in source_paths:
+        if os.path.getsize(source_path) == 0:
+            raise FileNotFoundError(
+                "zero-byte lidar source for {} {}: {}".format(
+                    scene, frame, source_path
+                )
+            )
         # Points, boxes and camera extrinsics all live in base_link, so each
         # sensor goes straight to base_link with no primary-lidar detour.
         _append_transformed_bin_points(fused, source_path, transforms[sensor])
@@ -238,9 +257,258 @@ def _upsert_obj_annotation(annotations, source_annotation):
     return annotations
 
 
+# ------------------------- 会话级数据集（可选目录） -------------------------
+SESSION_DATASET_KEY = "sust_dataset"
+
+
+def _apply_session_dataset():
+    """每个请求开始时执行：把「本浏览器会话」选择的数据根写入当前线程。
+
+    没有会话（或会话里没记录）时恢复成默认数据根（SUST_DATA_ROOT 或 ./data）。
+    这样多个用户各自打开不同目录时互不影响。
+    """
+    root = None
+    try:
+        root = cherrypy.session.get(SESSION_DATASET_KEY)
+    except Exception:
+        root = None
+    if os.environ.get("SUST_DEBUG"):
+        print("[sust][debug] session dataset = {!r}".format(root), flush=True)
+    if root and os.path.isdir(root):
+        scene_reader.set_root_dir(root)
+    else:
+        scene_reader.reset_root_dir()
+
+
+# before_request_body：进入页面处理函数之前先把线程本地数据根准备好。
+# priority=60 必须大于 sessions 工具的 50，否则 cherrypy.session 还没初始化。
+cherrypy.tools.sust_session_root = cherrypy.Tool(
+    "before_request_body", _apply_session_dataset, priority=60
+)
+
+
+# ------------------------- 退出时清理 temp 缓存 -------------------------
+_temp_cleaned = False
+
+
+def clean_temp_cache(force=False):
+    """清空 temp 目录下的融合缓存等临时文件（保留 temp 目录本身）。
+
+    默认在后端退出时自动执行；可用 SUST_CLEAN_TEMP_ON_EXIT=0 关闭。
+    """
+    global _temp_cleaned
+    if _temp_cleaned and not force:
+        return
+    flag = os.environ.get("SUST_CLEAN_TEMP_ON_EXIT", "1").strip().lower()
+    if flag in ("0", "false", "no", "off") and not force:
+        print("[sust] SUST_CLEAN_TEMP_ON_EXIT off, keep temp cache", flush=True)
+        return
+    if not os.path.isdir(TEMP_DIR):
+        _temp_cleaned = True
+        return
+    removed = 0
+    for name in os.listdir(TEMP_DIR):
+        target = os.path.join(TEMP_DIR, name)
+        try:
+            if os.path.isdir(target) and not os.path.islink(target):
+                shutil.rmtree(target, ignore_errors=True)
+            else:
+                os.remove(target)
+            removed += 1
+        except OSError as exc:
+            print("[sust] clean temp failed: {} ({})".format(target, exc), flush=True)
+    _temp_cleaned = True
+    print("[sust] temp cache cleaned: {} ({} items)".format(TEMP_DIR, removed), flush=True)
+
+
+def _install_shutdown_cleanup():
+    """进程退出（Ctrl-C / kill / 正常结束）时清掉 temp 缓存。"""
+    atexit.register(clean_temp_cache)
+
+    def _on_stop(*args, **kwargs):
+        clean_temp_cache()
+
+    try:
+        cherrypy.engine.subscribe("stop", _on_stop)
+        cherrypy.engine.subscribe("exit", _on_stop)
+    except Exception as exc:
+        print("[sust] cannot subscribe shutdown cleanup: {}".format(exc), flush=True)
+
+
 class Root(object):
+    # 每个请求都先按会话恢复数据根（并发选择不同目录的关键）
+    _cp_config = {"tools.sust_session_root.on": True}
+
+    # 用动态路由 /data/... 取代 server.conf 里的 [/data] 静态目录，
+    # 这样数据根可以是前端选择的任意本地目录。
+    _MIME_OVERRIDES = {
+        ".bin": "application/octet-stream",
+        ".pcd": "application/octet-stream",
+        ".ply": "application/octet-stream",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".json": "application/json",
+        ".txt": "text/plain; charset=utf-8",
+    }
+
+    # ---------------- 目录选择 / 数据根切换 ----------------
+    def _set_session_dataset(self, root):
+        """把数据根写进当前浏览器会话（cookie session_id）。"""
+        try:
+            cherrypy.session[SESSION_DATASET_KEY] = root
+        except Exception as exc:  # sessions 未开启时退化为进程级默认
+            print("[sust] WARN cannot store dataset in session: {}".format(exc), flush=True)
+
+    def _clear_session_dataset(self):
+        try:
+            cherrypy.session.pop(SESSION_DATASET_KEY, None)
+        except Exception:
+            pass
+
+    @staticmethod
+    def _normalize_user_path(path):
+        path = os.path.expanduser(str(path or "").strip())
+        if path.startswith("file://"):
+            path = path[len("file://"):]
+        return path
+
     @cherrypy.expose
-    def index(self, scene="", frame=""):
+    @cherrypy.tools.json_out()
+    def get_data_root(self):
+        return {
+            "root": scene_reader.get_root_dir(),
+            "default_root": scene_reader.get_default_root_dir(),
+        }
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def browse_dir(self, path=""):
+        """列出目录内容，供前端「选择数据目录」对话框浏览用。"""
+        path = self._normalize_user_path(path) or scene_reader.get_root_dir()
+        path = os.path.abspath(path)
+        if not os.path.isdir(path):
+            return {
+                "ok": False,
+                "error": "目录不存在: {}".format(path),
+                "path": path,
+                "parent": None,
+                "dirs": [],
+            }
+
+        dirs = []
+        try:
+            names = sorted(os.listdir(path))
+        except OSError as exc:
+            return {
+                "ok": False,
+                "error": "无法读取目录: {}".format(exc),
+                "path": path,
+                "parent": None,
+                "dirs": [],
+            }
+
+        for name in names:
+            if name.startswith("."):
+                continue
+            full = os.path.join(path, name)
+            if not os.path.isdir(full):
+                continue
+            dirs.append({
+                "name": name,
+                "path": full,
+                "is_scene": scene_reader.looks_like_scene(full),
+            })
+
+        parent = os.path.dirname(path)
+        return {
+            "ok": True,
+            "path": path,
+            "parent": parent if parent != path else None,
+            "is_scene": scene_reader.looks_like_scene(path),
+            "scene_names": [d["name"] for d in dirs if d["is_scene"]],
+            "dirs": dirs,
+            "home": os.path.expanduser("~"),
+            "repo": REPO_DIR,
+            "default_root": scene_reader.get_default_root_dir(),
+        }
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def set_data_root(self, path=""):
+        """切换当前会话的数据根目录。
+
+        - path 为空      -> 恢复默认数据根（./data 或 SUST_DATA_ROOT）
+        - path 是一个 clip（含 lidar/label/...）-> 用其父目录做根，并返回要打开的 scene
+        - path 是包含 scene 子目录的目录      -> 直接作为根
+        """
+        path = self._normalize_user_path(path)
+        if not path:
+            self._clear_session_dataset()
+            scene_reader.reset_root_dir()
+            return {
+                "ok": True,
+                "reset": True,
+                "root": scene_reader.get_root_dir(),
+                "scene": "",
+                "scene_count": len(scene_reader.get_scene_names()),
+            }
+
+        path = os.path.abspath(path)
+        if not os.path.isdir(path):
+            return {"ok": False, "error": "目录不存在: {}".format(path)}
+
+        scene_name = ""
+        if scene_reader.looks_like_scene(path):
+            # 用户直接选中某个 clip：根目录取父目录，并顺手打开该 scene
+            scene_name = os.path.basename(path)
+            root = os.path.dirname(path)
+        else:
+            root = path
+
+        self._set_session_dataset(root)
+        scene_reader.set_root_dir(root)
+        scene_names = scene_reader.get_scene_names()
+        return {
+            "ok": True,
+            "root": root,
+            "scene": scene_name,
+            "scene_count": len(scene_names),
+            "scene_names": scene_names,
+        }
+
+    @cherrypy.expose
+    def data(self, *parts, **kwargs):
+        """按当前会话数据根动态提供点云 / 图片等文件。"""
+        from cherrypy.lib import static as cherrypy_static
+
+        root = os.path.abspath(scene_reader.get_root_dir())
+        rel = os.path.join(*parts) if parts else ""
+        target = os.path.abspath(os.path.join(root, rel))
+        if target != root and not target.startswith(root + os.sep):
+            raise cherrypy.HTTPError(403, "path escapes data root")
+        if not os.path.isfile(target):
+            raise cherrypy.HTTPError(404, "not found: {}".format(rel))
+        ext = os.path.splitext(target)[1].lower()
+        ctype = self._MIME_OVERRIDES.get(ext) or mimetypes.guess_type(target)[0] \
+            or "application/octet-stream"
+        return cherrypy_static.serve_file(target, content_type=ctype)
+
+    @cherrypy.expose
+    def index(self, scene="", frame="", dataset=""):
+      if dataset:
+          path = self._normalize_user_path(dataset)
+          if os.path.isdir(path):
+              scene_name = ""
+              if scene_reader.looks_like_scene(path):
+                  scene_name = os.path.basename(path)
+                  path = os.path.dirname(path)
+              self._set_session_dataset(os.path.abspath(path))
+              scene_reader.set_root_dir(path)
+              print("[sust] dataset -> root {} (scene {!r})".format(
+                  os.path.abspath(path), scene_name), flush=True)
+          else:
+              print("[sust] WARN dataset not reachable locally: {}".format(dataset), flush=True)
       tmpl = env.get_template('index.html')
       return tmpl.render()
   
@@ -285,7 +553,7 @@ class Root(object):
           scene = d["scene"]
           frame = d["frame"]
           ann = d["annotation"]
-          label_dir = "./data/"+scene +"/label"
+          label_dir = scene_reader.get_label_dir(scene)
           os.makedirs(label_dir, exist_ok=True)
           with open(label_dir +"/"+frame+".json",'w') as f:
             json.dump(ann, f, indent=2, sort_keys=True)
@@ -339,7 +607,7 @@ class Root(object):
             "annotation": ann,
           })
 
-          label_dir = os.path.join("./data", scene, "label")
+          label_dir = scene_reader.get_label_dir(scene)
           os.makedirs(label_dir, exist_ok=True)
           with open(os.path.join(label_dir, frame + ".json"), "w") as f:
             json.dump(new_ann, f, indent=2, sort_keys=True)
@@ -392,7 +660,7 @@ class Root(object):
             "annotation": original_ann,
           })
 
-          label_dir = os.path.join("./data", scene, "label")
+          label_dir = scene_reader.get_label_dir(scene)
           os.makedirs(label_dir, exist_ok=True)
           with open(os.path.join(label_dir, frame + ".json"), "w") as f:
             json.dump(new_ann, f, indent=2, sort_keys=True)
@@ -452,7 +720,7 @@ class Root(object):
             "annotation": original_ann,
           })
 
-          label_dir = os.path.join("./data", scene, "label")
+          label_dir = scene_reader.get_label_dir(scene)
           os.makedirs(label_dir, exist_ok=True)
           with open(os.path.join(label_dir, frame + ".json"), "w") as f:
             json.dump(new_ann, f, indent=2, sort_keys=True)
@@ -510,7 +778,7 @@ class Root(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def checkscene(self, scene):
-      ck = check.LabelChecker(os.path.join("./data", scene))
+      ck = check.LabelChecker(scene_reader.get_scene_dir(scene))
       ck.check()
       print(ck.messages)
       return ck.messages
@@ -540,7 +808,7 @@ class Root(object):
     @cherrypy.tools.json_out()
     def auto_annotate(self, scene, frame):
       print("auto annotate ", scene, frame)
-      return pre_annotate.annotate_file('./data/{}/lidar/{}.pcd'.format(scene,frame))
+      return pre_annotate.annotate_file(os.path.join(scene_reader.get_scene_dir(scene), 'lidar', '{}.pcd'.format(frame)))
       
 
 
@@ -580,7 +848,7 @@ class Root(object):
     @cherrypy.tools.json_out()
     def propagate_init(self, scene, frame, obj_id):
       frame = _normalize_frame(frame)
-      data_dir = "./data"
+      data_dir = scene_reader.get_root_dir()
       pose_loader = spatial_propagation.PoseLoader(os.path.join(data_dir, scene))
 
       if not pose_loader.has_pose(frame):
@@ -625,7 +893,7 @@ class Root(object):
     @cherrypy.tools.json_out()
     def stack_object_points(self, scene, frame, obj_id=None, box_psr=None, frame_radius=4, margin=1.2, max_points=30000):
       frame = _normalize_frame(frame)
-      data_dir = "./data"
+      data_dir = scene_reader.get_root_dir()
       pose_loader = spatial_propagation.PoseLoader(os.path.join(data_dir, scene))
 
       if not pose_loader.has_pose(frame):
@@ -709,7 +977,7 @@ class Root(object):
         src_for_matching = _normalize_frame(prev_frame)
       else:
         src_for_matching = anchor_frame
-      data_dir = "./data"
+      data_dir = scene_reader.get_root_dir()
       pose_loader = spatial_propagation.PoseLoader(os.path.join(data_dir, scene))
 
       box_psr = _parse_psr_payload(src_psr)
@@ -853,7 +1121,7 @@ class Root(object):
     @cherrypy.expose    
     @cherrypy.tools.json_out()
     def objs_of_scene(self, scene):
-      return self.get_all_objs(os.path.join("./data",scene))
+      return self.get_all_objs(scene_reader.get_scene_dir(scene))
 
     def get_all_objs(self, path):
       label_folder = os.path.join(path, "label")
@@ -892,6 +1160,14 @@ class Root(object):
       return [x for x in  all_objs.values()]
 
 if __name__ == '__main__':
-    cherrypy.quickstart(Root(), '/', config="server.conf")
+    # 后端退出（Ctrl-C / SIGTERM / 正常结束）时清理 temp 下的融合缓存
+    _install_shutdown_cleanup()
+    cfg = os.environ.get("SUST_CONFIG", "server.conf")
+    print("[sust] data root = {} (default)".format(scene_reader.get_default_root_dir()), flush=True)
+    print("[sust] dataset   = 前端「选择目录」按浏览器会话记住", flush=True)
+    print("[sust] temp cache= {} （退出自动清理，SUST_CLEAN_TEMP_ON_EXIT=0 可关）".format(TEMP_DIR), flush=True)
+    print("[sust] config     = {}".format(cfg), flush=True)
+    cherrypy.quickstart(Root(), '/', config=cfg)
 else:
-    application = cherrypy.Application(Root(), '/', config="server.conf")
+    _install_shutdown_cleanup()
+    application = cherrypy.Application(Root(), '/', config=os.environ.get("SUST_CONFIG", "server.conf"))

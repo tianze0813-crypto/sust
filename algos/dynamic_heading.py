@@ -115,7 +115,7 @@ def _select_equivalent_heading(box, pose_yaw, target_world_yaw):
 def fit_moving_direction_by_id(scene, obj_id, min_moving_distance=DEFAULT_MIN_MOVING_DISTANCE_M):
     scene_meta = scene_reader.get_one_scene(scene)
     frames = scene_meta.get("frames", [])
-    pose_loader = PoseLoader(os.path.join(scene_reader.root_dir, scene))
+    pose_loader = PoseLoader(os.path.join(scene_reader.get_root_dir(), scene))
 
     if not frames:
         return {

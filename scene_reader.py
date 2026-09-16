@@ -1,9 +1,66 @@
 
 import os
 import json
+import threading
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
-root_dir = os.path.join(this_dir, "data")
+
+# 数据根目录：默认仍是仓库内的 ./data，可用环境变量 SUST_DATA_ROOT 覆盖。
+# 目录下每个子目录 = 一个 scene（clip）。
+_DEFAULT_ROOT_DIR = os.path.abspath(
+    os.environ.get("SUST_DATA_ROOT") or os.path.join(this_dir, "data")
+)
+
+# 数据根是「按线程」的：cherrypy 每个请求跑在一个工作线程里，请求开头用
+# set_root_dir() 写入当前浏览器会话选择的数据根，这样多个用户并发访问不同
+# 目录时互不影响（原实现是模块级全局变量，会互相把根目录切走）。
+_local = threading.local()
+
+
+def get_default_root_dir():
+    """启动时的默认数据根（SUST_DATA_ROOT 或 <repo>/data）。"""
+    return _DEFAULT_ROOT_DIR
+
+
+def get_root_dir():
+    """当前请求/线程生效的数据集根目录（每个子目录 = 一个 scene）。"""
+    return getattr(_local, "root_dir", _DEFAULT_ROOT_DIR)
+
+
+def set_root_dir(path):
+    """设置当前线程的数据集根目录（供前端选择目录使用）。"""
+    _local.root_dir = os.path.abspath(path)
+    return _local.root_dir
+
+
+def reset_root_dir():
+    """当前线程恢复为默认数据根。"""
+    if hasattr(_local, "root_dir"):
+        del _local.root_dir
+    return _DEFAULT_ROOT_DIR
+
+
+def list_scene_names_at(path):
+    """列出指定目录下的 scene 名（跳过隐藏目录）。"""
+    if not os.path.isdir(path):
+        return []
+    names = [
+        name for name in os.listdir(path)
+        if not name.startswith(".") and os.path.isdir(os.path.join(path, name))
+    ]
+    names.sort()
+    return names
+
+
+def looks_like_scene(path):
+    """目录是否像一个 SUST scene：含 lidar / image / camera / label / readme.json。"""
+    if not os.path.isdir(path):
+        return False
+    for name in ("lidar", "image", "camera", "label", "readme.json"):
+        if os.path.exists(os.path.join(path, name)):
+            return True
+    return False
+
 
 POINT_EXTS = (".pcd", ".bin")
 IMAGE_EXTS = (".jpg", ".jpeg", ".png")
@@ -224,7 +281,11 @@ def _build_camera_calib_from_transform(transform_calib, camera_names):
 
 
 def get_scene_dir(scene):
-    return os.path.join(root_dir, scene)
+    return os.path.join(get_root_dir(), scene)
+
+
+def get_label_dir(scene):
+    return os.path.join(get_root_dir(), scene, "label")
 
 
 def get_transform_calib(scene):
@@ -249,6 +310,12 @@ def get_frame_sensor_file(scene, frame, sensor_type, sensor_name=None):
         filename = lidar_files.get("_default")
         if filename:
             return os.path.join(get_scene_dir(scene), "lidar", filename)
+        # 多传感器目录布局下没有 _default 时，回退到主雷达目录
+        if not sensor_name:
+            primary = scene_meta.get("lidar_primary")
+            filename = lidar_files.get(primary) if primary else None
+            if filename:
+                return os.path.join(get_scene_dir(scene), "lidar", primary, filename)
         return os.path.join(
             get_scene_dir(scene),
             "lidar",
@@ -285,14 +352,24 @@ def get_all_scene_desc():
     return descs
 
 def get_scene_names():
-      scenes = os.listdir(root_dir)
-      scenes = filter(lambda s: not os.path.exists(os.path.join(root_dir, s, "disable")), scenes)
-      scenes = list(scenes)
+      root = get_root_dir()
+      if not os.path.isdir(root):
+          return []
+      scenes = []
+      for name in os.listdir(root):
+          if name.startswith("."):
+              continue
+          scene_dir = os.path.join(root, name)
+          if not os.path.isdir(scene_dir):
+              continue
+          if os.path.exists(os.path.join(scene_dir, "disable")):
+              continue
+          scenes.append(name)
       scenes.sort()
       return scenes
 
 def get_scene_desc(s):
-    scene_dir = os.path.join(root_dir, s)
+    scene_dir = os.path.join(get_root_dir(), s)
     if os.path.exists(os.path.join(scene_dir, "desc.json")):
         with open(os.path.join(scene_dir, "desc.json")) as f:
             desc = json.load(f)
@@ -305,7 +382,7 @@ def get_one_scene(s):
         "frames": []
     }
 
-    scene_dir = os.path.join(root_dir, s)
+    scene_dir = os.path.join(get_root_dir(), s)
 
     lidar_layout = _detect_lidar_layout(scene_dir)
     scene["frames"] = lidar_layout["frames"]
@@ -483,17 +560,22 @@ def get_one_scene(s):
 
 
 def read_annotations(scene, frame):
-    filename = os.path.join(root_dir, scene, "label", frame+".json")
+    filename = os.path.join(get_root_dir(), scene, "label", frame+".json")
     if (os.path.isfile(filename)):
-      with open(filename,"r") as f:
-        ann=json.load(f)
-        #print(ann)          
-        return ann
+      if os.path.getsize(filename) == 0:
+        return []
+      try:
+        with open(filename,"r") as f:
+          ann=json.load(f)
+          #print(ann)          
+          return ann
+      except (json.JSONDecodeError, ValueError):
+        return []
     else:
       return []
 
 def read_ego_pose(scene, frame):
-    filename = os.path.join(root_dir, scene, "ego_pose", frame+".json")
+    filename = os.path.join(get_root_dir(), scene, "ego_pose", frame+".json")
     if (os.path.isfile(filename)):
       with open(filename,"r") as f:
         p=json.load(f)
@@ -502,7 +584,7 @@ def read_ego_pose(scene, frame):
       return None
 
 def save_annotations(scene, frame, anno):
-    filename = os.path.join(root_dir, scene, "label", frame+".json")
+    filename = os.path.join(get_root_dir(), scene, "label", frame+".json")
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     with open(filename, 'w') as outfile:
             json.dump(anno, outfile)

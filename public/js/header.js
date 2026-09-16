@@ -1,6 +1,7 @@
 
 import { CubeRefractionMapping } from "./lib/three.module.js";
 import {saveWorldList} from "./save.js"
+import {DirPicker} from "./dir_picker.js"
 
 var Header=function(ui, data, cfg, onSceneChanged, onFrameChanged, onObjectSelected, onCameraChanged){
 
@@ -60,6 +61,20 @@ var Header=function(ui, data, cfg, onSceneChanged, onFrameChanged, onObjectSelec
             this.updateSceneList(sceneDescList);
             this.sceneSelectorUi.value = curentValue;
         }))
+    }
+
+    // 选择其他数据目录：切换成功后整页重载，避免沿用旧数据根的缓存
+    this.dirPicker = new DirPicker((ret)=>{
+        if (ret && ret.scene) {
+            window.location.href = "/?scene=" + encodeURIComponent(ret.scene);
+        } else {
+            window.location.reload();
+        }
+    });
+
+    let chooseDirUi = this.ui.querySelector("#btn-choose-dir");
+    if (chooseDirUi) {
+        chooseDirUi.onclick = ()=>{ this.dirPicker.open(); };
     }
 
     

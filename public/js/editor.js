@@ -8,7 +8,7 @@ import {ImageContextManager} from "./image.js?v=4";
 import {globalObjectCategory} from "./obj_cfg.js";
 
 import {objIdManager} from "./obj_id_list.js";
-import {Header} from "./header.js";
+import {Header} from "./header.js?v=2";
 import {BoxOp} from './box_op.js';
 import {AutoAdjust} from "./auto-adjust.js?v=21";
 import {PlayControl} from "./play.js";
